@@ -1,32 +1,27 @@
-package com.CSE4057;
+package com.CSE4057.BackupDosyaları;
 
 // Java implementation for a client
 // Save file as Client.java
-/*
-gönderen gönderir iken
- student object1=new student(12,"Pankaj","M.tech");
-   os.writeObject(object1);
 
- Alıcı okur iken
-student s=(student)is.readObject();
-     s.showDetails();*/
-
-import java.io.*;
-import java.net.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
 // Client class
-public class Client
+public class Client2
 {
+
     private Key pub,pvt;
     private String userName="";
     private KeyPairGenerator kpg;
     private KeyPair kp;
-    private Client() throws Exception {
+    private Client2() throws Exception {
         kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);
         kp = kpg.generateKeyPair();
@@ -46,22 +41,12 @@ public class Client
     public Key getPrivateKey(){return pvt;}
     public String getUserName() {return userName;    }
 
-    public static void main(String[] args) throws Exception
+
+    public static void main(String[] args) throws IOException
     {
-        Client client = new Client();
-        Scanner scn = new Scanner(System.in);
-        String name = null;
-
-        System.out.println("Enter username : ");
-        while(name == null  || name =="" ){
-            name = scn.nextLine();
-            client.setUserName(name);
-        }
-        System.out.println("Client ready to connect server ...");
-
         try
         {
-            scn = new Scanner(System.in);
+            Scanner scn = new Scanner(System.in);
 
             // getting localhost ip
             InetAddress ip = InetAddress.getByName("localhost");
@@ -79,19 +64,12 @@ public class Client
             // obtaining input and out streams
             DataInputStream dis = new DataInputStream(s.getInputStream());
             DataOutputStream dos = new DataOutputStream(s.getOutputStream());
-            //alttaki tanımlamaları yapınca bile çalışmıyor
-//            ObjectInputStream ois = new ObjectInputStream(s.getInputStream());
-//            ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
 
-//            oos.writeUTF(client.getUserName());
-//            oos.writeObject(client.getPrivateKey());
-//            System.out.println(client.userName);
             // the following loop performs the exchange of
             // information between client and client handler
             while (true)
             {
                 System.out.println(dis.readUTF());
-                
                 String tosend = scn.nextLine();
                 dos.writeUTF(tosend);
 
@@ -119,6 +97,4 @@ public class Client
 //            System.out.println("Server reset by peer");
         }
     }
-
-
 }

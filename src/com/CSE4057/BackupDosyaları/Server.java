@@ -1,4 +1,4 @@
-package com.CSE4057;// Java implementation of Server side
+package com.CSE4057.BackupDosyaları;// Java implementation of Server side
 // It contains two classes : Server and ClientHandler
 // Save file as Server.java
 
@@ -32,6 +32,9 @@ public class Server
                 DataInputStream dis = new DataInputStream(s.getInputStream());
                 DataOutputStream dos = new DataOutputStream(s.getOutputStream());
 
+//                ObjectInputStream ois = new ObjectInputStream(s.getInputStream());
+//                Key k = (Key) ois.readObject();
+//                System.out.println("Key is "+k.toString());
                 System.out.println("Assigning new thread for this client");
 
                 // create a new thread object

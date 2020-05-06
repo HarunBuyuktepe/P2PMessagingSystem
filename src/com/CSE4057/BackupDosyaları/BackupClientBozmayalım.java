@@ -1,14 +1,17 @@
-package com.CSE4057;
+package com.CSE4057.BackupDosyaları;
 
 // Java implementation for a client
 // Save file as Client.java
 
-import java.io.*;
-import java.net.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.Scanner;
 
 // Client class
-public class Client2
+public class BackupClientBozmayalım
 {
     public static void main(String[] args) throws IOException
     {
