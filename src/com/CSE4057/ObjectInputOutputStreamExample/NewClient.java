@@ -1,6 +1,7 @@
 package com.CSE4057.ObjectInputOutputStreamExample;
 
 
+
 import java.io.*;
 import java.net.Socket;
 import java.security.Key;
@@ -10,12 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class Client {
+public class NewClient {
     private Key pub,pvt;
     private String userName="";
     private KeyPairGenerator kpg;
     private KeyPair kp;
-    private Client() throws Exception {
+    private NewClient() throws Exception {
         kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);
         kp = kpg.generateKeyPair();
@@ -37,7 +38,7 @@ public class Client {
 
     public static void main(String[] args) throws Exception {
 
-        Client client = new Client();
+        NewClient client = new NewClient();
         Scanner scn = new Scanner(System.in);
         String name = null;
 
@@ -62,3 +63,4 @@ public class Client {
         socket.close();
     }
 }
+

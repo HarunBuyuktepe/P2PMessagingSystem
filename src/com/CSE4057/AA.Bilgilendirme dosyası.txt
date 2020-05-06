@@ -1,0 +1,33 @@
+Selamun aleyküm mübarek buraya bilgilendirmeleri yazıcam inş.
+
+
+
+
+07.05.2020
+    harun:
+        com.CSE4057'ye ödevin dosyaları olacak
+
+        BackupDosyaları yazan yerde thread'li çalışan socket var
+
+        ObjectInputOutput yazan yerde socket içinde obje gönderme örneği var onu threadli yapmaya çalışıyorum
+
+        threadli çalşınca sana bilgi veririm sen orada sertifika oluşturur tekrar clint'a gönderirsin
+
+        Ama henüz thread'le obje gönderemedim,
+        bu thread bitince ben servera public key göndericem sonra sen ,
+        - sertifika oluşturma,(Server tarafından imzalanması sanırım ödev dosyasına bakarsın) (serverda)
+        - arkasından sertifikayı clienta gönderme, (from server to client) //bu kısımda sockette object transferi örneğini ben yapıcam oradan bakarsın
+        - Client ta sertifikayı onaylatma ve (at client)
+        - server'a onay mesajı gönderme (at client)
+        - ardından bir yere kayıt etme (txt falan) (at server)
+        işlerini yaparsın,
+
+        oluşturulan sertifikaların nerede kayıt edicez bunuda düşünürüz
+
+        sen yukarıdaki işlere bakarken bende handshaking olayına bakarım inşallah
+
+
+        tabi önce benim threadli obje göndermeyi halletmem gerekiyor
+
+        tarihli şekilde yazarız iyi olur takibi :)
+
