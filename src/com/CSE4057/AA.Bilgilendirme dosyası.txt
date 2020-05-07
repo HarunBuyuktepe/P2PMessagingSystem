@@ -1,5 +1,15 @@
 Selamun aleyküm mübarek buraya bilgilendirmeleri yazıcam inş.
 
+08.05.2020 gecesi
+    harun:
+        - Kral yeniden S.a, client server'a gönderdiği bilgilerin ardından bir menü ile karşılaşacak daha kolaylaştırır işi
+        - olayı hafiften kavradım,
+        - Sen sertifika olayı ekleyince handshaking olayı kalıyor, handshake olayını da kafamda kurdum.
+        handshakete karşı tarafa kendi sertifikasını gönderecek gerisi karşılıklı paslaşma.
+        - bu arada servera bağlanan peerların bilgilerini bir yer de tutup isteyene gönderme işi de tamam
+
+        şuan top sende, bir konuda daralırsan yazarsın whatsapp'tan
+
 07.05.2020 gündüzü
 
     harun:

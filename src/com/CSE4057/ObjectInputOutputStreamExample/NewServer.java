@@ -14,12 +14,15 @@ public class NewServer {
     private static Key privateKeyOfServer = null;
     private static Key publicKeyOfServer = null;
     private static HashMap clientInfo = null;
-    NewServer(){
+    NewServer(Key privateKeyOfServer , Key publicKeyOfServer ,HashMap clientInfo){
+        this.privateKeyOfServer =privateKeyOfServer;
+        this.publicKeyOfServer = publicKeyOfServer;
+        this.clientInfo = clientInfo;
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         // don't need to specify a hostname, it will be the current machine
-        NewServer newServer = new NewServer();
+        NewServer newServer = new NewServer(privateKeyOfServer,publicKeyOfServer,clientInfo);
         clientInfo = new HashMap();
         ServerSocket ss = new ServerSocket(8018);
         System.out.println("ServerSocket awaiting connections...");
@@ -114,9 +117,18 @@ class ClientHandler extends Thread
                         System.out.println("Cerfication can not verified... Now again certification process will work");
                     } else if(stringComing.contains("send all peers")){
                         //we will send all
-//                        objectOutputStream.writeObject();
+                        System.out.println("liste ver la ok vermiş");
+                        objectOutputStream.writeObject(newServer.getClientInfo());
+                        System.out.println(newServer.getClientInfo().toString());
                     } else {
-                        userNameOfClient = stringComing;
+                        if(userNameOfClient==null){
+                            userNameOfClient = stringComing;
+                            System.out.println("Loooooooo "+userNameOfClient);
+                        } else {
+                            objectOutputStream.writeObject(new String("wrong command"));
+                        }
+
+
                     }
                     System.out.println(stringComing);
 

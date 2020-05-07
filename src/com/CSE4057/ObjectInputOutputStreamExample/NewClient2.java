@@ -8,47 +8,21 @@ import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.cert.Certificate;
-import java.util.HashMap;
 import java.util.Scanner;
 
-public class NewClient {
+public class NewClient2 {
     private static Key pub;
     private static Key pvt;
     private static String userName="";
+    private static KeyPairGenerator kpg;
+    private static KeyPair kp;
     private static Certificate serverCertificate = null;
     private static Key serverPublicKey = null;
     private static Boolean verifyCheck = false;
-    private static boolean scannerOn;
-
-    public NewClient() throws Exception {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-        kpg.initialize(2048);
-        KeyPair kp = kpg.generateKeyPair();
-        //defined key pair; public and private and we generate new pair
-        this.pub = kp.getPublic();
-        this.pvt = kp.getPrivate();
-        this.userName="";
-        verifyCheck = false;
-        this.serverCertificate = null;
-        this.serverPublicKey = null;
-        System.out.println("Client generate its keys");
-        boolean scannerOn=false;
-    }
-    public void setPublicKey(Key k){
-        pub=k;
-    }
-    public void setPrivateKey(Key k){
-        pvt=k;
-    }
-    public void setUserName(String name){userName=name;}
-    public Key getPublicKey(){return pub;}
-    public Key getPrivateKey(){return pvt;}
-    public String getUserName() {return userName;    }
 
     public static void main(String[] args) throws Exception {
 
         NewClient client = new NewClient();
-
         Scanner scn = new Scanner(System.in);
         String name = null;
 
@@ -58,7 +32,7 @@ public class NewClient {
             client.setUserName(name);
         }
         System.out.println("Client ready to connect server ...");
-//        System.out.println(client.getUserName());
+
         // need host and port, we want to connect to the ServerSocket at port 7777
         Socket socket = new Socket("localhost", 8018);
 
@@ -66,13 +40,11 @@ public class NewClient {
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
         ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
 
-        System.out.println("Sending public key and username to the ServerSocket");
+        System.out.println("Sending messages to the ServerSocket");
         objectOutputStream.writeObject(client.getPublicKey());
         objectOutputStream.writeObject(client.getUserName());
-        scannerOn = true;
-        System.out.println("Scanner on "+scannerOn);
-        HashMap allPeers=null;
-//        client.scannerOn=false;
+
+        System.out.println("Closing socket and terminating program.");
         while (true){
             Object o = objectInputStream.readObject();
             if (o instanceof Certificate){
@@ -85,25 +57,12 @@ public class NewClient {
                 verifyCheck = true;
             } else if (o == null){
                 System.out.println("Coming object is null");
-            } else if (o instanceof HashMap){
-                allPeers = (HashMap) o;
-                System.out.println(allPeers.toString());
-            } else if (o instanceof String){
-                System.out.println("Message come");
-                System.out.println(o.toString());
             }
             if (verifyCheck && serverPublicKey != null && serverCertificate != null){
                 String verify = verifySigniture(serverCertificate,serverPublicKey);
                 objectOutputStream.writeObject(verify);
                 verifyCheck = false;
-                scannerOn = true;
             }
-            if(scannerOn){
-                System.out.println("Enter your choice\n1. send all peers\n");
-                String command = scn.nextLine();
-                objectOutputStream.writeObject(command);
-            }
-
 
         }
     }
