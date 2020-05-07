@@ -1,16 +1,13 @@
-package com.CSE4057.ObjectInputOutputStreamExample;
+package com.CSE4057;
 
 
-
-import java.io.*;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Signature;
 import java.security.cert.Certificate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 public class NewClient {

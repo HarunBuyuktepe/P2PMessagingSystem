@@ -1,26 +1,23 @@
-package com.CSE4057.ObjectInputOutputStreamExample;
+package com.CSE4057;
 
 
-
-import java.io.*;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Signature;
 import java.security.cert.Certificate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
-public class NewClient {
+public class NewClient2 {
     private Key pub,pvt;
     private String userName="";
     private KeyPairGenerator kpg;
     private KeyPair kp;
     private static Certificate serverCertificate = null;
     private static Key serverPublicKey = null;
-    private NewClient() throws Exception {
+    private NewClient2() throws Exception {
         kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);
         kp = kpg.generateKeyPair();
@@ -42,7 +39,7 @@ public class NewClient {
 
     public static void main(String[] args) throws Exception {
 
-        NewClient client = new NewClient();
+        NewClient2 client = new NewClient2();
         Scanner scn = new Scanner(System.in);
         String name = null;
 
