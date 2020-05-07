@@ -17,6 +17,7 @@ public class NewClient2 {
     private KeyPair kp;
     private static Certificate serverCertificate = null;
     private static Key serverPublicKey = null;
+    private static Boolean verifyCheck = false;
     private NewClient2() throws Exception {
         kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);
@@ -67,15 +68,18 @@ public class NewClient2 {
             if (o instanceof Certificate){
                 System.out.println("Certificate come");
                 serverCertificate = (Certificate) o;
+                verifyCheck = true;
             } else if (o instanceof Key){
                 System.out.println("Key come");
                 serverPublicKey = (Key) o;
-            } else if(o == null){
+                verifyCheck = true;
+            } else if (o == null){
                 System.out.println("Coming object is null");
             }
-            if (serverPublicKey != null && serverCertificate != null){
+            if (verifyCheck && serverPublicKey != null && serverCertificate != null){
                 String verify = verifySigniture(serverCertificate,serverPublicKey);
                 objectOutputStream.writeObject(verify);
+                verifyCheck = false;
             }
 
         }
