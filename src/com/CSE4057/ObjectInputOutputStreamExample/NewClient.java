@@ -1,16 +1,13 @@
 package com.CSE4057.ObjectInputOutputStreamExample;
 
 
-
-import java.io.*;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Signature;
 import java.security.cert.Certificate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 public class NewClient {
@@ -20,6 +17,7 @@ public class NewClient {
     private KeyPair kp;
     private static Certificate serverCertificate = null;
     private static Key serverPublicKey = null;
+    private static Boolean verifyCheck = false;
     private NewClient() throws Exception {
         kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);
@@ -70,15 +68,18 @@ public class NewClient {
             if (o instanceof Certificate){
                 System.out.println("Certificate come");
                 serverCertificate = (Certificate) o;
+                verifyCheck = true;
             } else if (o instanceof Key){
                 System.out.println("Key come");
                 serverPublicKey = (Key) o;
-            } else if(o == null){
+                verifyCheck = true;
+            } else if (o == null){
                 System.out.println("Coming object is null");
             }
-            if (serverPublicKey != null && serverCertificate != null){
+            if (verifyCheck && serverPublicKey != null && serverCertificate != null){
                 String verify = verifySigniture(serverCertificate,serverPublicKey);
                 objectOutputStream.writeObject(verify);
+                verifyCheck = false;
             }
 
         }
