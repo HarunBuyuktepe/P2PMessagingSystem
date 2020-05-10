@@ -4,10 +4,9 @@ package com.CSE4057.ObjectInputOutputStreamExample;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.security.Key;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
+import java.security.*;
 import java.security.cert.Certificate;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -15,7 +14,7 @@ public class NewClient {
     private static Key pub;
     private static Key pvt;
     private static String userName="";
-    private static Certificate serverCertificate = null;
+    private static byte[] serverCertificate = null;
     private static Key serverPublicKey = null;
     private static Boolean verifyCheck = false;
     private static boolean scannerOn;
@@ -41,9 +40,10 @@ public class NewClient {
         pvt=k;
     }
     public void setUserName(String name){userName=name;}
-    public Key getPublicKey(){return pub;}
+    public static Key getPublicKey(){return pub;}
     public Key getPrivateKey(){return pvt;}
     public String getUserName() {return userName;    }
+    public static Key getServerPublicKey(){return serverPublicKey;}
 
     public static void main(String[] args) throws Exception {
 
@@ -69,15 +69,15 @@ public class NewClient {
         System.out.println("Sending public key and username to the ServerSocket");
         objectOutputStream.writeObject(client.getPublicKey());
         objectOutputStream.writeObject(client.getUserName());
-        scannerOn = true;
+//        scannerOn = true;
         System.out.println("Scanner on "+scannerOn);
         HashMap allPeers=null;
-//        client.scannerOn=false;
+        client.scannerOn=false;
         while (true){
             Object o = objectInputStream.readObject();
-            if (o instanceof Certificate){
+            if (o instanceof byte[]){
                 System.out.println("Certificate come");
-                serverCertificate = (Certificate) o;
+                serverCertificate = (byte[]) o;
                 verifyCheck = true;
             } else if (o instanceof Key){
                 System.out.println("Key come");
@@ -87,7 +87,9 @@ public class NewClient {
                 System.out.println("Coming object is null");
             } else if (o instanceof HashMap){
                 allPeers = (HashMap) o;
-                System.out.println(allPeers.toString());
+                allPeers.forEach((key, value) -> {
+                    System.out.println(key+" "+Base64.getEncoder().encodeToString((byte[]) value));
+                });
             } else if (o instanceof String){
                 System.out.println("Message come");
                 System.out.println(o.toString());
@@ -108,14 +110,18 @@ public class NewClient {
         }
     }
 
-    private static String verifySigniture(Certificate serverSigniture, Key serverPublicKey) {
-        //burada verify edersin
+    private static String verifySigniture(byte[] serverSigniture, Key serverPublicKey) throws Exception {
         String verify = "verified certificate";
         String notVerifyed ="not verified certificate";
+        Signature s = Signature.getInstance("SHA256withRSA");
+        s.initVerify((PublicKey) getServerPublicKey() );
+        s.update(Base64.getEncoder().encodeToString(getPublicKey().getEncoded()).getBytes());
 
+        if(s.verify(serverCertificate)){
+            return verify;
+        }else
+            return notVerifyed;
 
-        //verify edemezse not verified gönderirsin
-        return verify;
     }
 }
 

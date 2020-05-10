@@ -1,11 +1,10 @@
 package com.CSE4057.ObjectInputOutputStreamExample;
 
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.Key;
-import java.security.cert.Certificate;
+import java.security.*;
+import java.util.Base64;
 import java.util.HashMap;
 
 
@@ -20,9 +19,10 @@ public class NewServer {
         this.clientInfo = clientInfo;
     }
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) throws Exception {
         // don't need to specify a hostname, it will be the current machine
         NewServer newServer = new NewServer(privateKeyOfServer,publicKeyOfServer,clientInfo);
+        generateKey();
         clientInfo = new HashMap();
         ServerSocket ss = new ServerSocket(8018);
         System.out.println("ServerSocket awaiting connections...");
@@ -50,15 +50,21 @@ public class NewServer {
     }
     public static Key getPrivateKeyOfServer(){return privateKeyOfServer;}
     public static Key getPublicKeyOfServer(){return publicKeyOfServer;}
+    public static void setPrivateKeyOfServer(Key k){privateKeyOfServer=k;}
+    public static void setPublicKeyOfServer(Key k){publicKeyOfServer=k;}
 
-    public static void addToHash(Certificate certificate, String userNameOfClient) {
+    public static void addToHash(byte[] certificate, String userNameOfClient) {
         getClientInfo().put(userNameOfClient,certificate);
     }
     public static HashMap getClientInfo(){return clientInfo;}
 
-    public Key generatePrivateKey(){
-        //
-        return null;
+    public static void generateKey() throws Exception {
+        // here we generate server keys
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        kpg.initialize(2048);
+        KeyPair kp = kpg.generateKeyPair();
+        setPrivateKeyOfServer(kp.getPrivate());
+        setPublicKeyOfServer(kp.getPublic());
     }
 }
 
@@ -75,7 +81,7 @@ class ClientHandler extends Thread
     String userNameOfClient = null;
     Key privateKeyOfServer = null;
     Key publicKeyOfServer = null;
-    Certificate certificate = null;
+    byte[] certificate = null;
     Boolean sendedCertificate = false;
     NewServer newServer = null;
     // Constructor
@@ -119,7 +125,10 @@ class ClientHandler extends Thread
                         //we will send all
                         System.out.println("liste ver la ok vermiş");
                         objectOutputStream.writeObject(newServer.getClientInfo());
-                        System.out.println(newServer.getClientInfo().toString());
+                        newServer.getClientInfo().forEach((key, value) -> {
+                            System.out.println(key+" "+Base64.getEncoder().encodeToString((byte[]) value));
+                        });
+                        System.out.println(newServer.getClientInfo());
                     } else {
                         if(userNameOfClient==null){
                             userNameOfClient = stringComing;
@@ -148,15 +157,17 @@ class ClientHandler extends Thread
 
     }
 
-    private void saveCertificate(Certificate certificate, String userNameOfClient) {
+    private void saveCertificate(byte[] certificate, String userNameOfClient) {
 //        bir yere save etmeli
         newServer.addToHash(certificate,userNameOfClient);
     }
 
-    public Certificate certificate(Key publicKeyOfClient, Key privateKeyOfServer){
-        //kral burada imzalatırsın
-        Certificate certificate=null;
-
-        return certificate;//bize buradan sertifika dönsün
+    public byte[] certificate(Key publicKeyOfClient, Key privateKeyOfServer) throws Exception {
+        // here we sign public key of client with server private key
+        Signature certificate=Signature.getInstance("SHA256withRSA");
+        certificate.initSign((PrivateKey) privateKeyOfServer);
+        certificate.update(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()).getBytes());
+        byte[] digitalSign = certificate.sign();
+        return digitalSign; // return digital signature
     }
 }

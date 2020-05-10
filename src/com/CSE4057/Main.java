@@ -1,29 +1,54 @@
 package com.CSE4057;
 
+import sun.security.tools.keytool.CertAndKeyGen;
+import sun.security.x509.X500Name;
+
+import javax.xml.crypto.dsig.keyinfo.KeyInfo;
+import java.io.*;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.Base64;
+
 public class Main {
 
-    public static void main(String[] args) {
-        System.out.println("Allah yardımcımız olsun, kasıcı bir proje");
-        /*
-        * Server class: gelen her request için bir socket bağlantısı açıyor, ve bu bağlantı sürekli açık kalıyor
-        *               ancak biz kapatana kadar
-        *
-        * Client 1 ve 2 class: request gönderen ve socket bağlantısı açan clientlarımız
-        * (Info. Client 1 = Client2)
-        *
-        * sonraki aşamalarımız
-        *
-        * 1. Public Key - private key çiftini clint'a oluşturup server'a gönderip ardından
-        *  Server bu anahtarı imzalatıp ve bir sertifika oluşturmak, sertifikayı depolayıp (database yada geçici txt dosyasında yada hash map)
-        *   kullanıcıya bir kopyasını göndermek.
-        *
-        * 2. Kullanıcı sertifikayı aldığında sertifikanın doğru olduğunu ve
-        *           ortak anahtarın sunucu tarafından doğru bir şekilde alındığını doğrulaması
-        *
-        * bu iki madde bitince Public Key Certification kısmı bitiyor hacı, önemli olan parçalaya parçalaya gitmek
-        * parçadan gidersek boğuluruz
-        *
-        *
-        * */
+    public static void main(String[] args) throws Exception {
+
+
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        kpg.initialize(2048);
+        KeyPair kp = kpg.generateKeyPair();
+        Key publicKeyOfClient = kp.getPublic();
+        Key privateKeyOfClient = kp.getPrivate();
+
+        KeyPairGenerator kpg1 = KeyPairGenerator.getInstance("RSA");
+        kpg1.initialize(2048);
+        kp = kpg1.generateKeyPair();
+        Key publicKeyOfServer = kp.getPublic();
+        Key privateKeyOfServer = kp.getPrivate();
+
+        System.out.println(Base64.getEncoder().encodeToString(publicKeyOfServer.getEncoded()));
+        System.out.println(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()));
+
+        Signature s = Signature.getInstance("SHA256withRSA");
+        s.initSign((PrivateKey) privateKeyOfServer);
+        s.update(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()).getBytes());
+
+        byte[] digitalSign = s.sign();
+        System.out.println(Base64.getEncoder().encodeToString(digitalSign));
+
+        s.initVerify((PublicKey) publicKeyOfServer);
+        s.update(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()).getBytes());
+
+        if(s.verify(digitalSign)){
+            System.out.println("Verified with public key");
+        }else
+            System.out.println("Not verified");
+
+
+
     }
+
+
 }
