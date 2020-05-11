@@ -1,6 +1,5 @@
 package com.CSE4057;
 
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -14,17 +13,16 @@ import java.util.HashMap;
 
 import static com.CSE4057.ObjectInputOutputStreamExample.NewServer.*;
 
-
-public class NewServer {
-
+public class NewServer
+{
     private static Key privateKeyOfServer = null;
     private static Key publicKeyOfServer = null;
     private static HashMap clientInfo = null;
-    NewServer(){
+    
+    NewServer() { }
 
-    }
-
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception
+    {
         // don't need to specify a hostname, it will be the current machine
         generateKey();
 
@@ -32,7 +30,8 @@ public class NewServer {
         ServerSocket ss = new ServerSocket(8018);
         System.out.println("ServerSocket awaiting connections...");
 
-        while (true) {
+        while (true)
+        {
             Socket s = null;
 
             try {
@@ -53,17 +52,21 @@ public class NewServer {
         }
 
     }
-    public static Key getPrivateKeyOfServer(){return privateKeyOfServer;}
-    public static Key getPublicKeyOfServer(){return publicKeyOfServer;}
-    public static void setPrivateKeyOfServer(Key k){privateKeyOfServer=k;}
-    public static void setPublicKeyOfServer(Key k){publicKeyOfServer=k;}
+    
+    public static Key getPrivateKeyOfServer() { return privateKeyOfServer; }
+    public static Key getPublicKeyOfServer() { return publicKeyOfServer; }
+    public static void setPrivateKeyOfServer(Key k) { privateKeyOfServer = k; }
+    public static void setPublicKeyOfServer(Key k) { publicKeyOfServer = k; }
 
-    public static void addToHash(String userNameOfClient, byte[] Certificate) {
+    public static void addToHash(String userNameOfClient, byte[] Certificate)
+    {
         getClientInfo().put(userNameOfClient,Certificate);
     }
-    public static HashMap getClientInfo(){return clientInfo;}
+    
+    public static HashMap getClientInfo() { return clientInfo; }
 
-    public static void generateKey() throws Exception {
+    public static void generateKey() throws Exception
+    {
         // here we generate server keys
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);
@@ -76,8 +79,8 @@ public class NewServer {
 // ClientHandler class
 class ClientHandler extends Thread
 {
-//    final ObjectInputStream ois;
-//    final ObjectOutputStream oos;
+	// final ObjectInputStream ois;
+	// final ObjectOutputStream oos;
     final Socket s;
     // create a DataInputStream so we can read data from it.
     ObjectInputStream objectInputStream = null;
@@ -87,8 +90,10 @@ class ClientHandler extends Thread
     byte[] certificate = null;
     Boolean sendedCertificate = false;
     NewServer newServer = null;
+    
     // Constructor
-    public ClientHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream) {
+    public ClientHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream)
+    {
         this.s = s;
         this.objectInputStream = objectInputStream;
         this.objectOutputStream = objectOutputStream;
@@ -158,15 +163,17 @@ class ClientHandler extends Thread
 
     }
 
-    private void saveCertificate(String userNameOfClient) throws Exception {
-//        bir yere save etmeli
-    //    System.out.println(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()));
+    private void saveCertificate(String userNameOfClient) throws Exception
+    {
+    	// bir yere save etmeli
+    	// System.out.println(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()));
         Crypt crypt = new Crypt();
         byte[] cipherText = crypt.encrypt(publicKeyOfClient,getPrivateKeyOfServer());
         newServer.addToHash(userNameOfClient,cipherText );
     }
 
-    public byte[] certificate(Key publicKeyOfClient, Key privateKeyOfServer) throws Exception {
+    public byte[] certificate(Key publicKeyOfClient, Key privateKeyOfServer) throws Exception
+    {
         // here we sign public key of client with server private key
         Signature certificate=Signature.getInstance("SHA256withRSA");
         certificate.initSign((PrivateKey) getPrivateKeyOfServer());
@@ -174,4 +181,5 @@ class ClientHandler extends Thread
         byte[] digitalSign = certificate.sign();
         return digitalSign; // return digital signature
     }
+    
 }
