@@ -1,6 +1,8 @@
 package com.CSE4057.ObjectInputOutputStreamExample;
 
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -14,14 +16,14 @@ public class NewClient {
     private static Key pub;
     private static Key pvt;
     private static String userName="";
-    private static byte[] serverCertificate = null;
-    private static Key serverPublicKey = null;
-    private static Boolean verifyCheck = false;
-    private static boolean scannerOn;
+    public static byte[] serverCertificate = null;
+    public static Key serverPublicKey = null;
+    public static Boolean verifyCheck = false;
+    public static boolean scannerOn;
 
     public NewClient() throws Exception {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-        kpg.initialize(2048);
+        kpg.initialize(512);
         KeyPair kp = kpg.generateKeyPair();
         //defined key pair; public and private and we generate new pair
         this.pub = kp.getPublic();
@@ -86,9 +88,14 @@ public class NewClient {
             } else if (o == null){
                 System.out.println("Coming object is null");
             } else if (o instanceof HashMap){
+                Crypt crypt = new Crypt();
                 allPeers = (HashMap) o;
                 allPeers.forEach((key, value) -> {
-                    System.out.println(key+" "+Base64.getEncoder().encodeToString((byte[]) value));
+                    try {
+                        System.out.println(key+" "+crypt.decrypt((byte[]) value,getServerPublicKey()));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 });
             } else if (o instanceof String){
                 System.out.println("Message come");
@@ -122,6 +129,15 @@ public class NewClient {
         }else
             return notVerifyed;
 
+    }
+    private static Key getClientPublicKey(String certificate,Key publicKeyOfServer) throws Exception {
+        byte[] bytes = Base64.getDecoder().decode(certificate);
+        Cipher decriptCipher = Cipher.getInstance("RSA");
+        decriptCipher.init(Cipher.DECRYPT_MODE, publicKeyOfServer); // public key of user1
+        byte[] dec = decriptCipher.doFinal(bytes);
+        Key publicKeyOfOneClient = new SecretKeySpec(dec, 0, dec.length, "RSA");
+        System.out.println(Base64.getEncoder().encodeToString(publicKeyOfOneClient.getEncoded()));
+        return publicKeyOfOneClient;
     }
 }
 
