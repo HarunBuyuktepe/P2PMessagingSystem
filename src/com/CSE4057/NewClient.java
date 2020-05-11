@@ -11,7 +11,8 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Scanner;
 
-public class NewClient {
+public class NewClient
+{
     private static Key pub;
     private static Key pvt;
     private static String userName="";
@@ -34,20 +35,23 @@ public class NewClient {
         System.out.println("Client generate its keys");
         boolean scannerOn=false;
     }
-    public void setPublicKey(Key k){
-        pub=k;
-    }
-    public void setPrivateKey(Key k){
-        pvt=k;
-    }
-    public void setUserName(String name){userName=name;}
-    public static Key getPublicKey(){return pub;}
-    public Key getPrivateKey(){return pvt;}
-    public String getUserName() {return userName;    }
-    public static Key getServerPublicKey(){return serverPublicKey;}
 
-    public static void main(String[] args) throws Exception {
+    public void setPublicKey(Key k) { pub = k; }
+    
+    public static Key getPublicKey() { return pub; }
+    
+    public void setPrivateKey(Key k) { pvt = k; }
+    
+    public Key getPrivateKey() { return pvt; }
+    
+    public void setUserName(String name) { userName = name; }
+    
+    public String getUserName() { return userName; }
+    
+    public static Key getServerPublicKey() { return serverPublicKey; }
 
+    public static void main(String[] args) throws Exception
+    {
         NewClient client = new NewClient();
 
         Scanner scn = new Scanner(System.in);
@@ -58,8 +62,9 @@ public class NewClient {
             name = scn.nextLine();
             client.setUserName(name);
         }
+        
         System.out.println("Client ready to connect server ...");
-//        System.out.println(client.getUserName());
+        // System.out.println(client.getUserName());
         // need host and port, we want to connect to the ServerSocket at port 7777
         Socket socket = new Socket("localhost", 8018);
 
@@ -70,7 +75,7 @@ public class NewClient {
         System.out.println("Sending public key and username to the ServerSocket");
         objectOutputStream.writeObject(client.getPublicKey());
         objectOutputStream.writeObject(client.getUserName());
-//        scannerOn = true;
+        // scannerOn = true;
         System.out.println("Scanner on "+scannerOn);
         HashMap allPeers=null;
         client.scannerOn=false;
@@ -116,7 +121,8 @@ public class NewClient {
         }
     }
 
-    private static String verifySigniture(byte[] serverSigniture, Key serverPublicKey) throws Exception {
+    private static String verifySigniture(byte[] serverSigniture, Key serverPublicKey) throws Exception
+    {
         String verify = "verified certificate";
         String notVerifyed ="not verified certificate";
         Signature s = Signature.getInstance("SHA256withRSA");
@@ -129,7 +135,9 @@ public class NewClient {
             return notVerifyed;
 
     }
-    private static Key getClientPublicKey(String certificate,Key publicKeyOfServer) throws Exception {
+    
+    private static Key getClientPublicKey(String certificate,Key publicKeyOfServer) throws Exception
+    {
         byte[] bytes = Base64.getDecoder().decode(certificate);
         Cipher decriptCipher = Cipher.getInstance("RSA");
         decriptCipher.init(Cipher.DECRYPT_MODE, publicKeyOfServer); // public key of user1
@@ -138,4 +146,5 @@ public class NewClient {
         System.out.println(Base64.getEncoder().encodeToString(publicKeyOfOneClient.getEncoded()));
         return publicKeyOfOneClient;
     }
+    
 }
