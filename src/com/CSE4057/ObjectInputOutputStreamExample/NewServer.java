@@ -12,22 +12,22 @@ import java.util.Base64;
 import java.util.HashMap;
 
 import static com.CSE4057.ObjectInputOutputStreamExample.NewServer.*;
-
+import static com.CSE4057.ObjectInputOutputStreamExample.NewServer.getClientInfo;
+import static com.CSE4057.ObjectInputOutputStreamExample.NewServer.getClientPortInfo;
 
 public class NewServer {
 
     private static Key privateKeyOfServer = null;
     private static Key publicKeyOfServer = null;
     private static HashMap clientInfo = null;
-    NewServer(){
-
-    }
+    private static HashMap clientPortInfo = null;
 
     public static void main(String[] args) throws Exception {
         // don't need to specify a hostname, it will be the current machine
         generateKey();
 
         clientInfo = new HashMap();
+        clientPortInfo = new HashMap();
         ServerSocket ss = new ServerSocket(8018);
         System.out.println("ServerSocket awaiting connections...");
 
@@ -60,7 +60,10 @@ public class NewServer {
     public static void addToHash(String userNameOfClient, byte[] Certificate) {
         getClientInfo().put(userNameOfClient,Certificate);
     }
+
     public static HashMap getClientInfo(){return clientInfo;}
+
+    public static HashMap getClientPortInfo(){return clientPortInfo;}
 
     public static void generateKey() throws Exception {
         // here we generate server keys
@@ -86,6 +89,7 @@ class ClientHandler extends Thread
     byte[] certificate = null;
     Boolean sendedCertificate = false;
     NewServer newServer = null;
+    int portNumber = 0;
     // Constructor
     public ClientHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream) {
         this.s = s;
@@ -125,11 +129,13 @@ class ClientHandler extends Thread
                         System.out.println("liste ver la ok vermiş");
 
                         objectOutputStream.writeObject(getClientInfo());
+                        objectOutputStream.writeObject(getClientPortInfo());
                         getClientInfo().forEach((key, value) -> {
                             System.out.println(key+" "+Base64.getEncoder().encodeToString((byte[]) value));
                         });
                         System.out.println(getClientInfo());
-                    } else {
+                    }
+                    else {
                         if(userNameOfClient==null){
                             userNameOfClient = stringComing;
                             System.out.println("Loooooooo "+userNameOfClient);
@@ -137,26 +143,33 @@ class ClientHandler extends Thread
                             objectOutputStream.writeObject(new String("wrong command"));
                         }
 
-
                     }
                     System.out.println(stringComing);
 
+                } else if(o instanceof Integer){
+                    portNumber = (int) o ;
+                    System.out.println(portNumber);
+                    savePort(userNameOfClient,portNumber);
+                    sendedCertificate = false;
                 }
-                if(!sendedCertificate && userNameOfClient != null && publicKeyOfClient != null){
+                if(!sendedCertificate && userNameOfClient != null && publicKeyOfClient != null && portNumber !=0){
                     System.out.println("sending certificate");
                     certificate = certificate(publicKeyOfClient,getPublicKeyOfServer());
                     objectOutputStream.writeObject(certificate);
                 }
 
             }catch (Exception e){
-                System.out.println("hata");
+                getClientInfo().remove(userNameOfClient);
+                getClientPortInfo().remove(userNameOfClient);
                 return;
             }
         }
 
 
     }
-
+    private void savePort(String userNameOfClient, int port) {
+        getClientPortInfo().put(userNameOfClient,port );
+    }
     private void saveCertificate(String userNameOfClient) throws Exception {
 //        bir yere save etmeli
     //    System.out.println(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()));
