@@ -1,5 +1,12 @@
 Selamun aleyküm mübarek buraya bilgilendirmeleri yazıcam inş.
 
+11.05.2020 gündüz
+    harun:
+        - shared data optimization yapıldı (her iki client'ın paylaştığı, ikiside anlık veriye erişebilir hale geldi)
+        - Sertifika kayıt etme yerine server private key'i ile bağlanan client'ın public key'ini şifreliyor ve kayıt ediyor
+        - Şifrelenen public keyi elde etmek isteyen peer şifrelenen veriyi server'ın public key'i ile çözünce istediği peer'ın
+        public key'ini elde ediyor hale geldi
+
 10.05.2020 gündüz
     harun:
         - serverda public/private keyler oluşturuldu
