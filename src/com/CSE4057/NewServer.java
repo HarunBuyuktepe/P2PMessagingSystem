@@ -1,12 +1,18 @@
 package com.CSE4057;
 
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.Key;
-import java.security.cert.Certificate;
+import java.security.*;
+import java.util.Base64;
 import java.util.HashMap;
+
+import static com.CSE4057.ObjectInputOutputStreamExample.NewServer.*;
 
 
 public class NewServer {
@@ -15,11 +21,13 @@ public class NewServer {
     private static Key publicKeyOfServer = null;
     private static HashMap clientInfo = null;
     NewServer(){
+
     }
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) throws Exception {
         // don't need to specify a hostname, it will be the current machine
-        NewServer newServer = new NewServer();
+        generateKey();
+
         clientInfo = new HashMap();
         ServerSocket ss = new ServerSocket(8018);
         System.out.println("ServerSocket awaiting connections...");
@@ -35,7 +43,7 @@ public class NewServer {
                 ObjectInputStream objectInputStream=new ObjectInputStream(s.getInputStream());
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(s.getOutputStream());
                 // create a new thread object
-                Thread t = new ClientHandler(s,objectInputStream,objectOutputStream,newServer);
+                Thread t = new ClientHandler(s,objectInputStream,objectOutputStream);
 
                 t.start();
 
@@ -47,22 +55,28 @@ public class NewServer {
     }
     public static Key getPrivateKeyOfServer(){return privateKeyOfServer;}
     public static Key getPublicKeyOfServer(){return publicKeyOfServer;}
+    public static void setPrivateKeyOfServer(Key k){privateKeyOfServer=k;}
+    public static void setPublicKeyOfServer(Key k){publicKeyOfServer=k;}
 
-    public static void addToHash(Certificate certificate, String userNameOfClient) {
-        getClientInfo().put(userNameOfClient,certificate);
+    public static void addToHash(String userNameOfClient, byte[] Certificate) {
+        getClientInfo().put(userNameOfClient,Certificate);
     }
     public static HashMap getClientInfo(){return clientInfo;}
 
-    public Key generatePrivateKey(){
-        //generate etme
-        return null;
+    public static void generateKey() throws Exception {
+        // here we generate server keys
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        kpg.initialize(2048);
+        KeyPair kp = kpg.generateKeyPair();
+        setPrivateKeyOfServer(kp.getPrivate());
+        setPublicKeyOfServer(kp.getPublic());
     }
 }
 
 // ClientHandler class
 class ClientHandler extends Thread
 {
-    //    final ObjectInputStream ois;
+//    final ObjectInputStream ois;
 //    final ObjectOutputStream oos;
     final Socket s;
     // create a DataInputStream so we can read data from it.
@@ -70,19 +84,14 @@ class ClientHandler extends Thread
     ObjectOutputStream objectOutputStream = null;
     Key publicKeyOfClient = null;
     String userNameOfClient = null;
-    Key privateKeyOfServer = null;
-    Key publicKeyOfServer = null;
-    Certificate certificate = null;
+    byte[] certificate = null;
     Boolean sendedCertificate = false;
     NewServer newServer = null;
     // Constructor
-    public ClientHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, NewServer newServer) {
+    public ClientHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream) {
         this.s = s;
         this.objectInputStream = objectInputStream;
         this.objectOutputStream = objectOutputStream;
-        this.newServer = newServer;
-        this.privateKeyOfServer = newServer.getPrivateKeyOfServer();
-        this.publicKeyOfServer = newServer.getPublicKeyOfServer();
     }
 
     @Override
@@ -91,7 +100,7 @@ class ClientHandler extends Thread
         System.out.println(objectInputStream);
         Object o=null;
         try {
-            objectOutputStream.writeObject(publicKeyOfServer);
+            objectOutputStream.writeObject(getPublicKeyOfServer());
         } catch (IOException e) {
             System.out.println("Sending public key of server");
         }
@@ -107,23 +116,36 @@ class ClientHandler extends Thread
                     System.out.println("String is brought");
                     String stringComing = (String) o;
                     if(stringComing.equals("verified certificate")){
-                        saveCertificate(certificate,userNameOfClient);
+                        saveCertificate(userNameOfClient);
                         sendedCertificate = true;
                     } else if(stringComing.equals("not verified certificate")){
                         sendedCertificate = false;
                         System.out.println("Cerfication can not verified... Now again certification process will work");
                     } else if(stringComing.contains("send all peers")){
                         //we will send all
-//                        objectOutputStream.writeObject();
+                        System.out.println("liste ver la ok vermiş");
+
+                        objectOutputStream.writeObject(getClientInfo());
+                        getClientInfo().forEach((key, value) -> {
+                            System.out.println(key+" "+Base64.getEncoder().encodeToString((byte[]) value));
+                        });
+                        System.out.println(getClientInfo());
                     } else {
-                        userNameOfClient = stringComing;
+                        if(userNameOfClient==null){
+                            userNameOfClient = stringComing;
+                            System.out.println("Loooooooo "+userNameOfClient);
+                        } else {
+                            objectOutputStream.writeObject(new String("wrong command"));
+                        }
+
+
                     }
                     System.out.println(stringComing);
 
                 }
                 if(!sendedCertificate && userNameOfClient != null && publicKeyOfClient != null){
                     System.out.println("sending certificate");
-                    certificate = certificate(publicKeyOfClient,privateKeyOfServer);
+                    certificate = certificate(publicKeyOfClient,getPublicKeyOfServer());
                     objectOutputStream.writeObject(certificate);
                 }
 
@@ -136,15 +158,20 @@ class ClientHandler extends Thread
 
     }
 
-    private void saveCertificate(Certificate certificate, String userNameOfClient) {
+    private void saveCertificate(String userNameOfClient) throws Exception {
 //        bir yere save etmeli
-        newServer.addToHash(certificate,userNameOfClient);
+    //    System.out.println(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()));
+        Crypt crypt = new Crypt();
+        byte[] cipherText = crypt.encrypt(publicKeyOfClient,getPrivateKeyOfServer());
+        newServer.addToHash(userNameOfClient,cipherText );
     }
 
-    public Certificate certificate(Key publicKeyOfClient, Key privateKeyOfServer){
-        //kral burada imzalatırsın
-        Certificate certificate=null;
-
-        return certificate;//bize buradan sertifika dönsün
+    public byte[] certificate(Key publicKeyOfClient, Key privateKeyOfServer) throws Exception {
+        // here we sign public key of client with server private key
+        Signature certificate=Signature.getInstance("SHA256withRSA");
+        certificate.initSign((PrivateKey) getPrivateKeyOfServer());
+        certificate.update(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()).getBytes());
+        byte[] digitalSign = certificate.sign();
+        return digitalSign; // return digital signature
     }
 }
