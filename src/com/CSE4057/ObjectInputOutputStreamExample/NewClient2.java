@@ -19,7 +19,7 @@ public class NewClient2 {
 
         NewClient client = new NewClient();
         client.portNumber = 8034;
-        ServerSocket ss = new ServerSocket(client.portNumber);
+        ServerSocket ss ;
         Scanner scn = new Scanner(System.in);
         String name = null;
 
@@ -45,16 +45,9 @@ public class NewClient2 {
         HashMap portPeers=null;
         client.scannerOn=false;
         Socket peerUserTwo = null;
-        while (true){
-            peerUserTwo = ss.accept();
-            if(socket!=null){
-                client.socketList.add(socket);
-                ObjectInputStream serverObjectInputStream=new ObjectInputStream(socket.getInputStream());
-                ObjectOutputStream serverObjectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-                Thread t = new PeerUserTwoHandler(socket,serverObjectInputStream,serverObjectOutputStream);
-                t.start();
-            }
 
+
+        while (true){
 
             Object o = objectInputStream.readObject();
             if (o instanceof byte[]){
@@ -135,6 +128,27 @@ public class NewClient2 {
             }
         }
         System.out.println("Program end");
+        try{
+            ss = new ServerSocket(client.portNumber);
+            while(true){
+                try{
+                    System.out.println("Wait for any connection");
+                    socket = ss.accept();
+                    client.socketList.add(socket);
+                    ObjectInputStream serverObjectInputStream=new ObjectInputStream(socket.getInputStream());
+                    ObjectOutputStream serverObjectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                    Thread t = new PeerUserTwoHandler(socket,serverObjectInputStream,serverObjectOutputStream);
+                    t.start();
+                    System.out.println("Accepted");
+                }
+                catch (Exception e){
+                    System.out.println("Olmii");
+                }
+            }
+        }
+        catch (Exception e){
+            System.out.println("Neee");
+        }
     }
 
 

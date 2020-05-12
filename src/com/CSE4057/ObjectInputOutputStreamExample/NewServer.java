@@ -24,6 +24,8 @@ public class NewServer {
 
     public static void main(String[] args) throws Exception {
         // don't need to specify a hostname, it will be the current machine
+        NewServer newServer = new NewServer();
+
         generateKey();
 
         clientInfo = new HashMap();
@@ -42,7 +44,7 @@ public class NewServer {
                 ObjectInputStream objectInputStream=new ObjectInputStream(s.getInputStream());
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(s.getOutputStream());
                 // create a new thread object
-                Thread t = new ClientHandler(s,objectInputStream,objectOutputStream);
+                Thread t = new ClientHandler(s,objectInputStream,objectOutputStream,newServer);
 
                 t.start();
 
@@ -91,10 +93,11 @@ class ClientHandler extends Thread
     NewServer newServer = null;
     int portNumber = 0;
     // Constructor
-    public ClientHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream) {
+    public ClientHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream,NewServer newServer) {
         this.s = s;
         this.objectInputStream = objectInputStream;
         this.objectOutputStream = objectOutputStream;
+        this.newServer = newServer;
     }
 
     @Override
@@ -128,19 +131,19 @@ class ClientHandler extends Thread
                         //we will send all
                         System.out.println("liste ver la ok vermiş");
 
-                        objectOutputStream.writeObject(getClientInfo());
-                        objectOutputStream.writeObject(getClientPortInfo());
+                        objectOutputStream.writeObject(newServer.getClientInfo());
+                        objectOutputStream.writeObject(newServer.getClientPortInfo());
                         getClientInfo().forEach((key, value) -> {
                             System.out.println(key+" "+Base64.getEncoder().encodeToString((byte[]) value));
                         });
-                        System.out.println(getClientInfo());
                     }
                     else {
                         if(userNameOfClient==null){
                             userNameOfClient = stringComing;
-                            System.out.println("Loooooooo "+userNameOfClient);
+                            System.out.println("User name of the current client :  "+userNameOfClient);
                         } else {
-                            objectOutputStream.writeObject(new String("wrong command"));
+
+                            objectOutputStream.writeObject(new String("wrong command is "+stringComing));
                         }
 
                     }
@@ -159,8 +162,8 @@ class ClientHandler extends Thread
                 }
 
             }catch (Exception e){
-                getClientInfo().remove(userNameOfClient);
-                getClientPortInfo().remove(userNameOfClient);
+//                getClientInfo().remove(userNameOfClient);
+//                getClientPortInfo().remove(userNameOfClient);
                 return;
             }
         }

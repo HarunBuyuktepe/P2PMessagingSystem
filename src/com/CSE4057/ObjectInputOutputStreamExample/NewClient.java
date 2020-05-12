@@ -27,6 +27,7 @@ public class NewClient {
     public static boolean scannerOn;
     public static int portNumber;
     public static List<Socket> socketList = null;
+    private boolean wait;
 
     public NewClient() throws Exception {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
@@ -43,7 +44,7 @@ public class NewClient {
         System.out.println("Client generate its keys");
         boolean scannerOn=false;
         int portNumber = 0;
-
+        this.wait = true;
     }
     public void setPublicKey(Key k){
         pub=k;
@@ -73,7 +74,7 @@ public class NewClient {
         }
         System.out.println("Client ready to connect server ...");
         Socket socket = new Socket("localhost", 8018);
-        socketList.add(socket);
+        client.socketList.add(socket);
         // create an object output stream from the output stream so we can send an object through it
         ObjectOutputStream serverObjectOutputStream = new ObjectOutputStream(socket.getOutputStream());
         ObjectInputStream serverObjectInputStream = new ObjectInputStream(socket.getInputStream());
@@ -83,20 +84,21 @@ public class NewClient {
         serverObjectOutputStream.writeObject(client.getUserName());
         serverObjectOutputStream.writeObject(client.getPortNumber());
 
-
+        int portToConnect = 0;
         HashMap allPeers=null;
         HashMap portPeers=null;
         client.scannerOn=false;
+        client.wait = true;
         while (true){
             Object o = serverObjectInputStream.readObject();
             if (o instanceof byte[]){
                 System.out.println("Certificate come");
-                serverCertificate = (byte[]) o;
-                verifyCheck = true;
+                client.serverCertificate = (byte[]) o;
+                client.verifyCheck = true;
             } else if (o instanceof Key){
                 System.out.println("Key come");
-                serverPublicKey = (Key) o;
-                verifyCheck = true;
+                client.serverPublicKey = (Key) o;
+                client.verifyCheck = true;
             } else if (o == null){
                 System.out.println("Coming object is null");
             } else if (o instanceof HashMap){
@@ -105,13 +107,14 @@ public class NewClient {
                 Map.Entry entry = (Map.Entry) anyhash.entrySet().iterator().next();
                 if(entry.getValue() instanceof byte[]) {
                     allPeers = anyhash;
-                    allPeers.forEach((key, value) -> {
-                        try {
-                            System.out.println("Peer : "+key + " " + crypt.decrypt((byte[]) value, getServerPublicKey()));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
+//                    allPeers.forEach((key, value) -> {
+//                        try {
+//                            System.out.println("Peer : "+key + " " + crypt.decrypt((byte[]) value, getServerPublicKey()));
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
+//                    });
+                    client.wait = true;
                 } else {
                     portPeers = anyhash;
                     portPeers.forEach((key, value) -> {
@@ -121,22 +124,23 @@ public class NewClient {
                             e.printStackTrace();
                         }
                     });
+                    client.wait = false;
                 }
             } else if (o instanceof String){
                 System.out.println("Message come");
                 System.out.println(o.toString());
             }
-            if (verifyCheck && serverPublicKey != null && serverCertificate != null){
-                String verify = verifySigniture(serverCertificate,serverPublicKey);
+            if (client.verifyCheck && client.serverPublicKey != null && client.serverCertificate != null){
+                String verify = verifySigniture(client.serverCertificate,client.serverPublicKey);
                 serverObjectOutputStream.writeObject(verify);
-                verifyCheck = false;
-                scannerOn = true;
+                client.verifyCheck = false;
+                client.scannerOn = true;
+                client.wait = false;
             }
-            if(scannerOn) {
+            if(client.scannerOn && !client.wait) {
                 System.out.println("Enter your choice\n1.To get all peer certificate and username, - send all peers" +
-                        "\n2.To get user port, - get connect USERNAME\n3.To terminate server connection, - terminate server connection"+
-                        "\n4.To terminate with port number, - terminate PORT_NUMBER"+
-                        "\n5.Open connection to port, - open PORT_NUMBER ");
+                        "\n2.To connect user, - connect USERNAME\n3.To terminate server connection, - terminate server connection"+
+                        "\n4.To terminate with port number, - terminate PORT_NUMBER");
                 String command = scn.nextLine();
                 if (command.contains("terminate server connection")) {
                     socket.close();
@@ -150,7 +154,7 @@ public class NewClient {
                         System.out.println("hata");
                     }
                     System.out.println(terminatePort);
-                    for (Socket s: socketList) {
+                    for (Socket s: client.socketList) {
                         if(s.getPort() == terminatePort){
                             s.close();
                             if(terminatePort == 8018) {
@@ -161,31 +165,23 @@ public class NewClient {
                         }
                     }
                 } 
-                else if (command.contains("get connect ")){
+                else if (command.contains("connect ")){
                     String connect="";
                     try {
-                        connect = (command.replace("get connect ", ""));
+                        connect = (command.replace("connect ", ""));
                     } catch (Exception e){
                         System.out.println("hata");
                     }
                     if(portPeers!=null){
-                        int port = (int) portPeers.get(connect);
-                        for (Socket s: socketList) {
-                            if(s.getPort() == port){
+                        portToConnect = (int) portPeers.get(connect);
+                        for (Socket s: client.socketList) {
+                            if(s.getPort() == portToConnect){
                                 s.close();
                                 System.out.println("Selected port closed");
                             }
                         }
-
-                        Socket toPeerSocket = new Socket("localhost",port);
-                        socketList.add(toPeerSocket);
-                        ObjectOutputStream clientObjectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-                        ObjectInputStream clientObjectInputStream = new ObjectInputStream(socket.getInputStream());
-
-                        Thread t = new PeerUserOneHandler(toPeerSocket,clientObjectInputStream,clientObjectOutputStream);
-
-                        t.start();
-
+                        socket.close();
+                        break;
                     }
                 }
                 else {
@@ -193,6 +189,18 @@ public class NewClient {
                 }
 
             }
+        }
+        if(portToConnect != 0){
+            System.out.println("Port to connect : "+portToConnect);
+            Socket toPeerSocket = new Socket("localhost",portToConnect);
+            client.socketList.add(toPeerSocket);
+            ObjectOutputStream clientObjectOutputStream = new ObjectOutputStream(toPeerSocket.getOutputStream());
+            ObjectInputStream clientObjectInputStream = new ObjectInputStream(toPeerSocket.getInputStream());
+
+            Thread t = new PeerUserOneHandler(toPeerSocket,clientObjectInputStream,clientObjectOutputStream);
+
+            t.start();
+
         }
         System.out.println("Program end");
     }
@@ -239,21 +247,29 @@ class PeerUserOneHandler extends Thread
     {
         System.out.println(objectInputStream);
         Object o=null;
+        try {
+            objectOutputStream.writeObject(new String("hello"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         while (true){
             try {
                 o = (Object) objectInputStream.readObject();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
+                if (o instanceof String){
+                    System.out.println("String is brought");
+                    String stringComing = (String) o;
+                    System.out.println(stringComing);
+
+                } else if(o instanceof Integer){
+                    portNumber = (int) o ;
+                    System.out.println(portNumber);
+
+                }
+            }catch (Exception e){
+
+                return;
             }
         }
-//        try {
-//            objectOutputStream.writeObject(getPublicKeyOfServer());
-//        } catch (IOException e) {
-//            System.out.println("Sending public key of server");
-//        }
-//        while (true){
 //            try {
 //                o = (Object) objectInputStream.readObject();
 //                if (o instanceof Key) {
