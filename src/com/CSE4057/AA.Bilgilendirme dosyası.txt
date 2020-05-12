@@ -1,5 +1,12 @@
 Selamun aleyküm mübarek buraya bilgilendirmeleri yazıcam inş.
 
+12.05.2020 gündüz
+    harun:
+        - Client - Client socket bağlantısı açıldı
+        - Açılan bağlantılar threadler ile devam ediyor
+        - Şu hali ile sadece 1 e 1 görüşme yapılabilir
+        - sonraki aşamamız artık bunlar handshake yapıcak, birinci hello göndericek, öteki nonce göndericek vs.
+
 11.05.2020 gündüz
     harun:
         - shared data optimization yapıldı (her iki client'ın paylaştığı, ikiside anlık veriye erişebilir hale geldi)
