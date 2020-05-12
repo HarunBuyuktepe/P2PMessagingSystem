@@ -60,8 +60,8 @@ public class NewClient {
     public static int getPortNumber(){return portNumber;}
 
     public static void main(String[] args) throws Exception {
-
         NewClient client = new NewClient();
+        System.out.println("Public Key : "+Base64.getEncoder().encodeToString(client.getPublicKey().getEncoded()));
         client.portNumber = 8035;
         ServerSocket ss = new ServerSocket(client.portNumber);
         Scanner scn = new Scanner(System.in);
@@ -94,6 +94,9 @@ public class NewClient {
             if (o instanceof byte[]){
                 System.out.println("Certificate come");
                 client.serverCertificate = (byte[]) o;
+                Crypt crypt = new Crypt(); // to test
+                Key a = crypt.decrypt(client.serverCertificate,client.serverPublicKey);
+                System.out.println("!!!!!"+Base64.getEncoder().encodeToString(a.getEncoded()));
                 client.verifyCheck = true;
             } else if (o instanceof Key){
                 System.out.println("Key come");
@@ -169,19 +172,7 @@ public class NewClient {
 
             }
         }
-        System.out.println("Would you like to connect some one ? just write, - connect USER_NAME or - exit");
-        String connect = scn.nextLine();
-        if(connect.equals("exit"))
-            return;
-        connect = (connect.replace("connect ", ""));
-        if(portPeers!=null){
-            portToConnect = (int) portPeers.get(connect);
-            for (Socket s: client.socketList) {
-                if(s.getPort() == portToConnect){
-                    s.close();
-                }
-            }
-        }
+
 
         if(portToConnect != 0){
             System.out.println("Port to connect : "+portToConnect);
@@ -194,7 +185,7 @@ public class NewClient {
             clientObjectOutputStream.writeObject(client.serverCertificate);
             clientObjectOutputStream.writeObject(new String("username "+client.getUserName()));
 
-            Thread t = new PeerUserOneHandler(toPeerSocket,clientObjectInputStream,clientObjectOutputStream);
+            Thread t = new PeerUserOneHandler(toPeerSocket,clientObjectInputStream,clientObjectOutputStream,client);
 
             t.start();
 
@@ -222,7 +213,7 @@ public class NewClient {
 // PeerHandler class
 class PeerUserOneHandler extends Thread
 {
-    //    final ObjectInputStream ois;
+//    final ObjectInputStream ois;
 //    final ObjectOutputStream oos;
     final Socket s;
     // create a DataInputStream so we can read data from it.
@@ -232,13 +223,14 @@ class PeerUserOneHandler extends Thread
     String userNameOfClient = null;
     byte[] certificateOfnewPeer = null;
     int nonce = 0;
-
+    NewClient client = null;
 
     // Constructor
-    public PeerUserOneHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream) {
+    public PeerUserOneHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, NewClient client) {
         this.s = s;
         this.objectInputStream = objectInputStream;
         this.objectOutputStream = objectOutputStream;
+        this.client = client;
     }
 
     @Override
@@ -258,6 +250,9 @@ class PeerUserOneHandler extends Thread
                 if (o instanceof String){
                     System.out.println("String is brought");
                     String stringComing = (String) o;
+                    if(stringComing.equals("ACK")){
+                        System.out.println("Connection Ok");
+                    }
                     System.out.println(stringComing);
 
                 } else if(o instanceof Integer){
@@ -269,11 +264,17 @@ class PeerUserOneHandler extends Thread
                     certificateOfnewPeer = (byte[]) o;
                 }
                 if(certificateOfnewPeer != null && nonce != 0 && !cryptedNonce){
-
-//                    objectOutputStream.writeObject();
+                    Crypt crypt = new Crypt();
+                    String toEncrypt = ""+nonce;
+                    System.out.println("&&&& "+Base64.getEncoder().encodeToString(client.getPrivateKey().getEncoded()));
+                    byte[] cipherText = crypt.encryptText(toEncrypt,client.getPrivateKey());
+                    System.out.println("text " +Base64.getEncoder().encodeToString(cipherText));
+                    System.out.println(crypt.decryptString(cipherText,client.getPublicKey()));
+                    objectOutputStream.writeObject(cipherText);
                     cryptedNonce = true;
                 }
             }catch (Exception e){
+                e.printStackTrace();
                 System.out.println("Koptu");
                 return;
             }

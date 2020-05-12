@@ -1,12 +1,15 @@
 package com.CSE4057.ObjectInputOutputStreamExample;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.Serializable;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
+import java.security.*;
+import java.security.interfaces.RSAKey;
+import java.security.spec.EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 // must implement Serializable in order to be sent
@@ -33,7 +36,10 @@ public class Crypt {
         Key publicKeyOfSecondClient = kp.getPublic();
         Key privateKeyOfSecondClient = kp.getPrivate();
 
+        System.out.println("---"+Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()));
         byte[] cipherText = encrypt(publicKeyOfClient,privateKeyOfServer);
+        Key publi = decrypt(cipherText,publicKeyOfServer);
+        System.out.println("---"+Base64.getEncoder().encodeToString(publi.getEncoded()));
 
 
     }
@@ -58,9 +64,30 @@ public class Crypt {
         Cipher decriptCipher = Cipher.getInstance("RSA");
         decriptCipher.init(Cipher.DECRYPT_MODE, publicKeyOfServer); // public key of user1
         byte[] dec = decriptCipher.doFinal(bytes);
+
         Key a = new SecretKeySpec(dec, 0, dec.length, "RSA");
         System.out.println(Base64.getEncoder().encodeToString(a.getEncoded()));
+
         return a;
     }
 
+    public byte[] encryptText(String toEncrypt, Key privateKey) throws Exception {
+        Cipher encryptCipher = Cipher.getInstance("RSA");
+        encryptCipher.init(Cipher.ENCRYPT_MODE, privateKey);
+        byte[] cipherText = encryptCipher.doFinal(toEncrypt.getBytes());
+        return cipherText;
+    }
+    public String decryptString(byte[] cipherText,Key publicKey) throws BadPaddingException, IllegalBlockSizeException {
+
+        try {
+            Cipher decriptCipher = Cipher.getInstance("RSA");;
+            decriptCipher.init(Cipher.DECRYPT_MODE, publicKey); // public key of user1
+            byte[] decStr = decriptCipher.doFinal(cipherText);
+            return new String(decStr);
+        } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException e) {
+            System.out.println("Ne bu şimdi yaa");
+//            e.printStackTrace();
+        }
+        return null;
+    }
 }

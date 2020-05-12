@@ -155,7 +155,7 @@ public class NewClient2 {
             ObjectOutputStream clientObjectOutputStream = new ObjectOutputStream(toPeerSocket.getOutputStream());
             ObjectInputStream clientObjectInputStream = new ObjectInputStream(toPeerSocket.getInputStream());
 
-            Thread t = new PeerUserOneHandler(toPeerSocket, clientObjectInputStream, clientObjectOutputStream);
+            Thread t = new PeerUserOneHandler(toPeerSocket, clientObjectInputStream, clientObjectOutputStream,client);
 
             t.start();
 
@@ -194,12 +194,12 @@ class PeerUserTwoHandler extends Thread
     // create a DataInputStream so we can read data from it.
     ObjectInputStream objectInputStream = null;
     ObjectOutputStream objectOutputStream = null;
-    Key publicKeyOfClient = null;
     String userNameOfClient = null;
     byte[] certificateOfnewPeer = null;
     int portNumber = 0;
     NewClient client=null;
-
+    Key publicKeyOfPeer = null;
+    int nonce=9;
 
     // Constructor
     public PeerUserTwoHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, NewClient client) {
@@ -214,13 +214,41 @@ class PeerUserTwoHandler extends Thread
     {
         System.out.println(objectInputStream);
         Object o=null;
+        byte[] encryptedMessage;
+        boolean encryptedNonceWaiting = false;
         boolean sendOneTime = false;
+        Crypt crypt = new Crypt();
         while (true){
             try {
                 o = (Object) objectInputStream.readObject();
                 if (o instanceof byte[]) {
                     System.out.println("Certificate is brought");
-                    certificateOfnewPeer = (byte[]) o;
+                    if(certificateOfnewPeer == null)
+                        certificateOfnewPeer = (byte[]) o;
+                    else if (publicKeyOfPeer == null){
+                        encryptedMessage = (byte[]) o;
+                        publicKeyOfPeer = crypt.decrypt(certificateOfnewPeer,client.serverPublicKey);
+
+                        System.out.println("Gelen mesaj "+Base64.getEncoder().encodeToString(encryptedMessage));
+                        System.out.println("--"+Base64.getEncoder().encodeToString(publicKeyOfPeer.getEncoded()));
+                        System.out.println("Hata altta");
+                        System.out.println(crypt.decryptString(encryptedMessage,publicKeyOfPeer));
+                        String commingMessage="0";
+                        if(crypt.decryptString(encryptedMessage,publicKeyOfPeer) == null) {
+                            commingMessage ="9";
+                            System.out.println(commingMessage);
+                        } else
+                            commingMessage = crypt.decryptString(encryptedMessage,publicKeyOfPeer);
+                        int comingNonce = Integer.parseInt(commingMessage);
+                        if(comingNonce == nonce){
+                            objectOutputStream.writeObject(new String("ACK"));
+                        }
+                    }
+                    else {
+                        encryptedMessage = (byte[]) o;
+                        String commingMessage = crypt.decryptString(encryptedMessage,publicKeyOfPeer);
+                        System.out.println("Coming message is :"+commingMessage);
+                    }
                 } else if (o instanceof String){
                     System.out.println("String is brought");
                     String stringComing = (String) o;
@@ -233,13 +261,15 @@ class PeerUserTwoHandler extends Thread
 
 
             } catch (Exception e){
+                e.printStackTrace();
                 System.out.println("Olmadı be");
             }
             try {
                 if(userNameOfClient != "" && certificateOfnewPeer != null && !sendOneTime) {
-                    objectOutputStream.writeObject(new Integer(9));
+                    objectOutputStream.writeObject(new Integer(nonce));
                     objectOutputStream.writeObject(client.getCertificate());
                     sendOneTime = true;
+                    encryptedNonceWaiting = true;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -276,6 +306,7 @@ class PeerUserTwoHandler extends Thread
 
 
     }
+
 
 }
 

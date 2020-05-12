@@ -1,5 +1,14 @@
 Selamun aleyküm mübarek buraya bilgilendirmeleri yazıcam inş.
 
+
+13.05.2020 gecesi
+    harun:
+        - Client - Client handshake zoraki yapıldı
+        - elle yaptım anlayacağın, görürsün client2' de , eğer null gelirse 9 yazıyor ona zamanız kalırsa bakıcam
+        - Client 1 'de  deneyince istediğimi gönderiyor, client 2'de yemiyor,
+        bu hatayı dönüyor :No installed provider supports this key: javax.crypto.spec.SecretKeySpec
+        - Şuan handshake olmuş gibi 3'e geçiyorum zaman kalırsa bakarız inşallah
+
 12.05.2020 gündüz
     harun:
         - Client - Client socket bağlantısı açıldı

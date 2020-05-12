@@ -1,5 +1,6 @@
 package com.CSE4057;
 
+import com.CSE4057.ObjectInputOutputStreamExample.Crypt;
 import sun.security.tools.keytool.CertAndKeyGen;
 import sun.security.x509.X500Name;
 
@@ -27,8 +28,9 @@ public class Main {
         Key publicKeyOfClient = kp.getPublic();
         Key privateKeyOfClient = kp.getPrivate();
 
+
         KeyPairGenerator kpg1 = KeyPairGenerator.getInstance("RSA");
-        kpg1.initialize(2048);
+        kpg1.initialize(512);
         kp = kpg1.generateKeyPair();
         Key publicKeyOfServer = kp.getPublic();
         Key privateKeyOfServer = kp.getPrivate();
@@ -39,6 +41,10 @@ public class Main {
         Key privateKeyOfSecondClient = kp.getPrivate();
 
 
+//        Crypt crypt = new Crypt();
+//        crypt.encrypt();
+//
+//
 
 //        Signature s = Signature.getInstance("SHA256withRSA");
 //        s.initSign((PrivateKey) privateKeyOfServer);
@@ -55,20 +61,20 @@ public class Main {
 //            System.out.println("Not verified");
 
 
-        System.out.println(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()));
-        Cipher encryptCipher = Cipher.getInstance("RSA");
-        encryptCipher.init(Cipher.ENCRYPT_MODE, privateKeyOfServer);
-        byte[] cipherText = encryptCipher.doFinal(publicKeyOfClient.getEncoded());
-        System.out.println(Base64.getEncoder().encodeToString(cipherText));
-
-
-
-        byte[] bytes = Base64.getDecoder().decode(Base64.getEncoder().encodeToString(cipherText));
-        Cipher decriptCipher = Cipher.getInstance("RSA");
-        decriptCipher.init(Cipher.DECRYPT_MODE, publicKeyOfServer); // public key of user1
-        byte[] dec = decriptCipher.doFinal(bytes);
-        Key a = new SecretKeySpec(dec, 0, dec.length, "RSA");
-        System.out.println(Base64.getEncoder().encodeToString(a.getEncoded()));
+//        System.out.println(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()));
+//        Cipher encryptCipher = Cipher.getInstance("RSA");
+//        encryptCipher.init(Cipher.ENCRYPT_MODE, privateKeyOfServer);
+//        byte[] cipherText = encryptCipher.doFinal(publicKeyOfClient.getEncoded());
+//        System.out.println(Base64.getEncoder().encodeToString(cipherText));
+//
+//
+//
+//        byte[] bytes = Base64.getDecoder().decode(Base64.getEncoder().encodeToString(cipherText));
+//        Cipher decriptCipher = Cipher.getInstance("RSA");
+//        decriptCipher.init(Cipher.DECRYPT_MODE, publicKeyOfServer); // public key of user1
+//        byte[] dec = decriptCipher.doFinal(bytes);
+//        Key a = new SecretKeySpec(dec, 0, dec.length, "RSA");
+//        System.out.println(Base64.getEncoder().encodeToString(a.getEncoded()));
 
 
 
