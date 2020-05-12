@@ -27,7 +27,7 @@ public class NewClient {
     public static boolean scannerOn;
     public static int portNumber;
     public static List<Socket> socketList = null;
-    private boolean wait;
+    public boolean wait;
 
     public NewClient() throws Exception {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
