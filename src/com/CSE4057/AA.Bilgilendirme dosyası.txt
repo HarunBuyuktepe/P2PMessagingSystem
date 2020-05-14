@@ -1,10 +1,13 @@
 Selamun aleyküm mübarek buraya bilgilendirmeleri yazıcam inş.
 
+
+
 14.05.2020 gündüz
     harun:
         - Client - Client problemi hile ile çözdüm çaktırmadan public key gönderiyorum, sonra sertifikadan çıkarttığım
         public key ile karşılaştırıyorum, eğer aynısıysa çalışmaya devam ediyor, olması gerektiği gibi şifreli mesajı
-        çözüyor.
+        çözüyor.(Adamın sertifikasından public keyini alıyoruz, ve peerdan gelen key ile karşılaştırıyoruz, ve peerdan
+        gelen ile çözüyoruz)
 
 13.05.2020 gecesi
     harun:
