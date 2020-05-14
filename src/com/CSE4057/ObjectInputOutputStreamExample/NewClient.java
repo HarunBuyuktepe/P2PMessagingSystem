@@ -31,7 +31,7 @@ public class NewClient {
 
     public NewClient() throws Exception {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-        kpg.initialize(512);
+        kpg.initialize(2048);
         KeyPair kp = kpg.generateKeyPair();
         //defined key pair; public and private and we generate new pair
         this.pub = kp.getPublic();
@@ -94,9 +94,11 @@ public class NewClient {
             if (o instanceof byte[]){
                 System.out.println("Certificate come");
                 client.serverCertificate = (byte[]) o;
-                Crypt crypt = new Crypt(); // to test
-                Key a = crypt.decrypt(client.serverCertificate,client.serverPublicKey);
-                System.out.println("!!!!!"+Base64.getEncoder().encodeToString(a.getEncoded()));
+//                System.out.println("Sertifika uzunluğu "+client.serverCertificate.length);
+//                Crypt crypt = new Crypt(); // to test
+//                Key a = crypt.decrypt(client.serverCertificate,client.serverPublicKey);
+//                System.out.println("Public Key : "+Base64.getEncoder().encodeToString(a.getEncoded()));
+//                System.out.println("Public key of server :"+Base64.getEncoder().encodeToString(client.serverPublicKey.getEncoded()));
                 client.verifyCheck = true;
             } else if (o instanceof Key){
                 System.out.println("Key come");
@@ -184,7 +186,7 @@ public class NewClient {
             clientObjectOutputStream.writeObject(new String("Hello"));
             clientObjectOutputStream.writeObject(client.serverCertificate);
             clientObjectOutputStream.writeObject(new String("username "+client.getUserName()));
-
+            clientObjectOutputStream.writeObject(client.getPublicKey());
             Thread t = new PeerUserOneHandler(toPeerSocket,clientObjectInputStream,clientObjectOutputStream,client);
 
             t.start();
@@ -195,13 +197,13 @@ public class NewClient {
     public static String verifySigniture(byte[] serverSigniture, Key serverPublicKey) throws Exception {
         String verify = "verified certificate";
         String notVerifyed ="not verified certificate";
-        Signature s = Signature.getInstance("SHA256withRSA");
-        s.initVerify((PublicKey) getServerPublicKey() );
-        s.update(Base64.getEncoder().encodeToString(getPublicKey().getEncoded()).getBytes());
+        Crypt crypt = new Crypt();
+        Key publi = crypt.decrypt(serverSigniture,serverPublicKey);
+        System.out.println("---"+Base64.getEncoder().encodeToString(publi.getEncoded()));
 
-        if(s.verify(serverSigniture)){
+        if(Base64.getEncoder().encodeToString(publi.getEncoded()).equals(Base64.getEncoder().encodeToString(getPublicKey().getEncoded())))
             return verify;
-        }else
+        else
             return notVerifyed;
 
     }
@@ -266,7 +268,7 @@ class PeerUserOneHandler extends Thread
                 if(certificateOfnewPeer != null && nonce != 0 && !cryptedNonce){
                     Crypt crypt = new Crypt();
                     String toEncrypt = ""+nonce;
-                    System.out.println("&&&& "+Base64.getEncoder().encodeToString(client.getPrivateKey().getEncoded()));
+//                    System.out.println("&&&& "+Base64.getEncoder().encodeToString(client.getPrivateKey().getEncoded()));
                     byte[] cipherText = crypt.encryptText(toEncrypt,client.getPrivateKey());
                     System.out.println("text " +Base64.getEncoder().encodeToString(cipherText));
                     System.out.println(crypt.decryptString(cipherText,client.getPublicKey()));

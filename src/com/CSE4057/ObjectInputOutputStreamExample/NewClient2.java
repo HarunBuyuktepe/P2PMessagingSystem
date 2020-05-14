@@ -199,6 +199,7 @@ class PeerUserTwoHandler extends Thread
     int portNumber = 0;
     NewClient client=null;
     Key publicKeyOfPeer = null;
+    Key publicKeyOfPeers = null;
     int nonce=9;
 
     // Constructor
@@ -228,17 +229,19 @@ class PeerUserTwoHandler extends Thread
                     else if (publicKeyOfPeer == null){
                         encryptedMessage = (byte[]) o;
                         publicKeyOfPeer = crypt.decrypt(certificateOfnewPeer,client.serverPublicKey);
-
-                        System.out.println("Gelen mesaj "+Base64.getEncoder().encodeToString(encryptedMessage));
-                        System.out.println("--"+Base64.getEncoder().encodeToString(publicKeyOfPeer.getEncoded()));
+                        System.out.println("text " +Base64.getEncoder().encodeToString(encryptedMessage));
+//                        System.out.println("Gelen mesaj "+Base64.getEncoder().encodeToString(encryptedMessage));
+                        System.out.println("Public Key of Client - 1 - : "+Base64.getEncoder().encodeToString(publicKeyOfPeer.getEncoded()));
                         System.out.println("Hata altta");
-                        System.out.println(crypt.decryptString(encryptedMessage,publicKeyOfPeer));
+                        System.out.println(crypt.decryptString(encryptedMessage,publicKeyOfPeers));
+                        if(Base64.getEncoder().encodeToString(publicKeyOfPeer.getEncoded()).equals(Base64.getEncoder().encodeToString(publicKeyOfPeers.getEncoded())))
+                            System.out.println("True");
                         String commingMessage="0";
-                        if(crypt.decryptString(encryptedMessage,publicKeyOfPeer) == null) {
-                            commingMessage ="9";
-                            System.out.println(commingMessage);
-                        } else
-                            commingMessage = crypt.decryptString(encryptedMessage,publicKeyOfPeer);
+//                        if(crypt.decryptString(encryptedMessage,publicKeyOfPeer) == null) {
+//                            commingMessage ="9";
+//                            System.out.println(commingMessage);
+//                        } else
+                        commingMessage = crypt.decryptString(encryptedMessage,publicKeyOfPeers);
                         int comingNonce = Integer.parseInt(commingMessage);
                         if(comingNonce == nonce){
                             objectOutputStream.writeObject(new String("ACK"));
@@ -249,7 +252,10 @@ class PeerUserTwoHandler extends Thread
                         String commingMessage = crypt.decryptString(encryptedMessage,publicKeyOfPeer);
                         System.out.println("Coming message is :"+commingMessage);
                     }
-                } else if (o instanceof String){
+                } else if(o instanceof Key){
+                    publicKeyOfPeers = (Key) o;
+                }
+                else if (o instanceof String){
                     System.out.println("String is brought");
                     String stringComing = (String) o;
                     System.out.println(stringComing);

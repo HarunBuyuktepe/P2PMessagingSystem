@@ -23,28 +23,37 @@ public class Main {
 
 
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-        kpg.initialize(512);
+        kpg.initialize(2048);
         KeyPair kp = kpg.generateKeyPair();
         Key publicKeyOfClient = kp.getPublic();
         Key privateKeyOfClient = kp.getPrivate();
 
 
         KeyPairGenerator kpg1 = KeyPairGenerator.getInstance("RSA");
-        kpg1.initialize(512);
+        kpg1.initialize(4096);
         kp = kpg1.generateKeyPair();
         Key publicKeyOfServer = kp.getPublic();
         Key privateKeyOfServer = kp.getPrivate();
 
         KeyPairGenerator kpg2 = KeyPairGenerator.getInstance("RSA");
-        kpg2.initialize(2048);
+        kpg2.initialize(4096);
         Key publicKeyOfSecondClient = kp.getPublic();
         Key privateKeyOfSecondClient = kp.getPrivate();
 
 
-//        Crypt crypt = new Crypt();
-//        crypt.encrypt();
-//
-//
+
+
+
+        Crypt crypt = new Crypt();
+        byte[] enc = crypt.encrypt(publicKeyOfClient,privateKeyOfServer);
+        Key publicK = crypt.decrypt(enc,publicKeyOfServer);
+        System.out.println(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()));
+        System.out.println("&&&& "+Base64.getEncoder().encodeToString(publicK.getEncoded()));
+
+
+
+
+
 
 //        Signature s = Signature.getInstance("SHA256withRSA");
 //        s.initSign((PrivateKey) privateKeyOfServer);

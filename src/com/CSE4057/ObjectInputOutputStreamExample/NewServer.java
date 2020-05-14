@@ -70,8 +70,9 @@ public class NewServer {
     public static void generateKey() throws Exception {
         // here we generate server keys
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-        kpg.initialize(2048);
+        kpg.initialize(4096);
         KeyPair kp = kpg.generateKeyPair();
+        System.out.println("Public Key : "+Base64.getEncoder().encodeToString(kp.getPublic().getEncoded()));
         setPrivateKeyOfServer(kp.getPrivate());
         setPublicKeyOfServer(kp.getPublic());
     }
@@ -158,6 +159,7 @@ class ClientHandler extends Thread
                 if(!sendedCertificate && userNameOfClient != null && publicKeyOfClient != null && portNumber !=0){
                     System.out.println("sending certificate");
                     certificate = certificate(publicKeyOfClient,getPublicKeyOfServer());
+                    System.out.println("Sertifika uzunluğu "+certificate.length);
                     objectOutputStream.writeObject(certificate);
                 }
 
@@ -183,10 +185,8 @@ class ClientHandler extends Thread
 
     public byte[] certificate(Key publicKeyOfClient, Key privateKeyOfServer) throws Exception {
         // here we sign public key of client with server private key
-        Signature certificate=Signature.getInstance("SHA256withRSA");
-        certificate.initSign((PrivateKey) getPrivateKeyOfServer());
-        certificate.update(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()).getBytes());
-        byte[] digitalSign = certificate.sign();
-        return digitalSign; // return digital signature
+        Crypt crypt = new Crypt();
+        byte[] cipherText = crypt.encrypt(publicKeyOfClient,getPrivateKeyOfServer());
+        return cipherText; // return digital signature
     }
 }
