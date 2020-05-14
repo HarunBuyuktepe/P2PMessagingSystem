@@ -99,31 +99,12 @@ public class NewClient2 {
             }
             if (client.scannerOn && !client.wait) {
                 System.out.println("Enter your choice\n1.To get all peer certificate and username, - send all peers" +
-                        "\n2.To connect user, - connect USERNAME\n3.To terminate server connection, - terminate server connection" +
-                        "\n4.To terminate with port number, - terminate PORT_NUMBER");
+                        "\n2.To connect user, - connect USERNAME\n3.To terminate server connection, - terminate server connection");
                 String command = scn.nextLine();
                 if (command.contains("terminate server connection")) {
                     socket.close();
                     break;
-                } else if (command.contains("terminate ")) {
-                    int terminatePort = 0;
-                    try {
-                        terminatePort = Integer.parseInt(command.replace("terminate ", ""));
-                    } catch (Exception e) {
-                        System.out.println("hata");
-                    }
-                    System.out.println(terminatePort);
-                    for (Socket s : client.socketList) {
-                        if (s.getPort() == terminatePort) {
-                            s.close();
-                            if (terminatePort == 8018) {
-                                System.out.println("Program end");
-                                return;
-                            }
-                            System.out.println("Selected port closed");
-                        }
-                    }
-                } else if (command.contains("connect ")) {
+                }  else if (command.contains("connect ")) {
                     String connect = "";
                     try {
                         connect = (command.replace("connect ", ""));
@@ -154,6 +135,11 @@ public class NewClient2 {
             client.socketList.add(toPeerSocket);
             ObjectOutputStream clientObjectOutputStream = new ObjectOutputStream(toPeerSocket.getOutputStream());
             ObjectInputStream clientObjectInputStream = new ObjectInputStream(toPeerSocket.getInputStream());
+
+            clientObjectOutputStream.writeObject(new String("Hello"));
+            clientObjectOutputStream.writeObject(client.serverCertificate);
+            clientObjectOutputStream.writeObject(new String("username "+client.getUserName()));
+            clientObjectOutputStream.writeObject(client.getPublicKey());
 
             Thread t = new PeerUserOneHandler(toPeerSocket, clientObjectInputStream, clientObjectOutputStream,client);
 
@@ -201,6 +187,7 @@ class PeerUserTwoHandler extends Thread
     Key publicKeyOfPeer = null;
     Key publicKeyOfPeers = null;
     int nonce=9;
+    Scanner scn = new Scanner(System.in);
 
     // Constructor
     public PeerUserTwoHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, NewClient client) {
@@ -219,59 +206,64 @@ class PeerUserTwoHandler extends Thread
         boolean encryptedNonceWaiting = false;
         boolean sendOneTime = false;
         Crypt crypt = new Crypt();
+        boolean connecting = false;
+        boolean chatModeOn = false;
         while (true){
             try {
                 o = (Object) objectInputStream.readObject();
-                if (o instanceof byte[]) {
-                    System.out.println("Certificate is brought");
-                    if(certificateOfnewPeer == null)
-                        certificateOfnewPeer = (byte[]) o;
-                    else if (publicKeyOfPeer == null){
-                        encryptedMessage = (byte[]) o;
-                        publicKeyOfPeer = crypt.decrypt(certificateOfnewPeer,client.serverPublicKey);
-                        System.out.println("text " +Base64.getEncoder().encodeToString(encryptedMessage));
+                if(!connecting) {
+                    if (o instanceof byte[]) {
+                        System.out.println("Certificate is brought");
+                        if (certificateOfnewPeer == null)
+                            certificateOfnewPeer = (byte[]) o;
+                        else if (publicKeyOfPeer == null) {
+                            encryptedMessage = (byte[]) o;
+                            publicKeyOfPeer = crypt.decrypt(certificateOfnewPeer, client.serverPublicKey);
+//                            System.out.println("text " + Base64.getEncoder().encodeToString(encryptedMessage));
 //                        System.out.println("Gelen mesaj "+Base64.getEncoder().encodeToString(encryptedMessage));
-                        System.out.println("Public Key of Client - 1 - : "+Base64.getEncoder().encodeToString(publicKeyOfPeer.getEncoded()));
-                        System.out.println("Hata altta");
-                        System.out.println(crypt.decryptString(encryptedMessage,publicKeyOfPeers));
-                        if(Base64.getEncoder().encodeToString(publicKeyOfPeer.getEncoded()).equals(Base64.getEncoder().encodeToString(publicKeyOfPeers.getEncoded())))
-                            System.out.println("True");
-                        String commingMessage="0";
+//                            System.out.println("Public Key of Client - 1 - : " + Base64.getEncoder().encodeToString(publicKeyOfPeer.getEncoded()));
+//                            System.out.println("Hata altta");
+                            System.out.println(crypt.decryptString(encryptedMessage, publicKeyOfPeers));
+                            if (!Base64.getEncoder().encodeToString(publicKeyOfPeer.getEncoded()).equals(Base64.getEncoder().encodeToString(publicKeyOfPeers.getEncoded())))
+                                System.out.println("Danger");
+                            String commingMessage = "0";
 //                        if(crypt.decryptString(encryptedMessage,publicKeyOfPeer) == null) {
 //                            commingMessage ="9";
 //                            System.out.println(commingMessage);
 //                        } else
-                        commingMessage = crypt.decryptString(encryptedMessage,publicKeyOfPeers);
-                        int comingNonce = Integer.parseInt(commingMessage);
-                        if(comingNonce == nonce){
-                            objectOutputStream.writeObject(new String("ACK"));
+                            commingMessage = crypt.decryptString(encryptedMessage, publicKeyOfPeers);
+                            int comingNonce = Integer.parseInt(commingMessage);
+                            if (comingNonce == nonce) {
+                                objectOutputStream.writeObject(new String("ACK"));
+                                connecting = true;
+                                System.out.println("Chat mode on in secure\nTo send image, - **file FILE_PATH");
+                                chatModeOn = true;
+                            }
+                        } else {
+                            encryptedMessage = (byte[]) o;
+                            String commingMessage = crypt.decryptString(encryptedMessage, publicKeyOfPeer);
+                            System.out.println("Coming message is :" + commingMessage);
                         }
-                    }
-                    else {
-                        encryptedMessage = (byte[]) o;
-                        String commingMessage = crypt.decryptString(encryptedMessage,publicKeyOfPeer);
-                        System.out.println("Coming message is :"+commingMessage);
-                    }
-                } else if(o instanceof Key){
-                    publicKeyOfPeers = (Key) o;
-                }
-                else if (o instanceof String){
-                    System.out.println("String is brought");
-                    String stringComing = (String) o;
-                    System.out.println(stringComing);
-                    if(stringComing.contains("username ")){
-                        userNameOfClient = stringComing.replace("username ","");
-                    }
-                }
+                    } else if (o instanceof Key) {
+                        publicKeyOfPeers = (Key) o;
+                    } else if (o instanceof String) {
+//                    System.out.println("String is brought");
+                        String stringComing = (String) o;
+                        System.out.println(stringComing);
+                        if (stringComing.contains("username ")) {
+                            userNameOfClient = stringComing.replace("username ", "");
+                        }
 
+                    }
 
+                }
 
             } catch (Exception e){
                 e.printStackTrace();
                 System.out.println("Olmadı be");
             }
             try {
-                if(userNameOfClient != "" && certificateOfnewPeer != null && !sendOneTime) {
+                if(userNameOfClient != "" && certificateOfnewPeer != null && !sendOneTime && !connecting) {
                     objectOutputStream.writeObject(new Integer(nonce));
                     objectOutputStream.writeObject(client.getCertificate());
                     sendOneTime = true;
@@ -279,6 +271,27 @@ class PeerUserTwoHandler extends Thread
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+            }
+            try{ // bağlantı kurulduysa
+                if(connecting){
+                    if(o instanceof String){
+                        String stringComing = (String) o;
+                        System.out.println(userNameOfClient + " : - " + stringComing);
+                    }
+
+                    if(chatModeOn){
+                        System.out.print("me : - ");
+                        String chat =  scn.nextLine();
+                        if(chat.contains("**file")){
+                            String path = chat.replace("**file","");
+                        }
+                        else
+                            objectOutputStream.writeObject(chat);
+                    }
+
+                }
+            } catch (Exception e){
+
             }
 
         }

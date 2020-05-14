@@ -2,6 +2,10 @@ package com.CSE4057.ObjectInputOutputStreamExample;
 
 
 import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.awt.*;
 import java.io.IOException;
@@ -11,6 +15,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.*;
 import java.security.cert.Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.List;
 
@@ -27,7 +32,14 @@ public class NewClient {
     public static boolean scannerOn;
     public static int portNumber;
     public static List<Socket> socketList = null;
+    private final SecretKeySpec EncryprtionKey;
     public boolean wait;
+    public static Mac mac = null;
+    public byte[] mastersecret  = "abcdefghijklmnop".getBytes("UTF-8");  //128 bit key  symmetric key
+    public byte[] initialciphertext  = "asdfgqlaslaslkalskals".getBytes("UTF-8");  //128 bit key  symmetric key
+    public byte[] currentCipherText;
+    public static IvParameterSpec iv ;
+
 
     public NewClient() throws Exception {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
@@ -45,6 +57,9 @@ public class NewClient {
         boolean scannerOn=false;
         int portNumber = 0;
         this.wait = true;
+        generateMac();
+        iv = new IvParameterSpec(mastersecret);
+        EncryprtionKey = new SecretKeySpec(mastersecret, "AES");
     }
     public void setPublicKey(Key k){
         pub=k;
@@ -208,6 +223,14 @@ public class NewClient {
 
     }
 
+    public void generateMac() throws Exception {
+        KeyGenerator keyGen = KeyGenerator.getInstance("HmacMD5");
+        // generate a key from the generator
+        SecretKey key = keyGen.generateKey();
+        Mac mac = javax.crypto.Mac.getInstance(key.getAlgorithm());
+        this.mac = mac;
+    }
+
     public static byte[] getCertificate() {
         return serverCertificate;
     }
@@ -226,7 +249,8 @@ class PeerUserOneHandler extends Thread
     byte[] certificateOfnewPeer = null;
     int nonce = 0;
     NewClient client = null;
-
+    boolean chatMoodOn = false;
+    Scanner scn = new Scanner(System.in);
     // Constructor
     public PeerUserOneHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, NewClient client) {
         this.s = s;
@@ -247,13 +271,15 @@ class PeerUserOneHandler extends Thread
         }
         Boolean cryptedNonce = false;
         while (true){
-            try {
+            try { // to construct handshake
                 o = (Object) objectInputStream.readObject();
                 if (o instanceof String){
-                    System.out.println("String is brought");
+                    System.out.print("peer : -");
                     String stringComing = (String) o;
                     if(stringComing.equals("ACK")){
                         System.out.println("Connection Ok");
+                        System.out.println("Chat mode on in secure\nTo send image, - **file FILE_PATH");
+                        chatMoodOn = true;
                     }
                     System.out.println(stringComing);
 
@@ -279,6 +305,21 @@ class PeerUserOneHandler extends Thread
                 e.printStackTrace();
                 System.out.println("Koptu");
                 return;
+            }
+            try{
+                if(chatMoodOn){
+                    System.out.print("me : - ");
+                    String chat =  scn.nextLine();
+                    if(chat.contains("**file")){
+                        String path = chat.replace("**file","");
+                    }
+                    else
+                        objectOutputStream.writeObject(chat);
+                }
+
+
+            } catch (Exception e) {
+                System.out.println("Chat error");
             }
         }
 
