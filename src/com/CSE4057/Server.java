@@ -1,7 +1,5 @@
 //package com.CSE4057;
 //
-//import com.CSE4057.ObjectInputOutputStreamExample.Crypt;
-//
 //import javax.crypto.BadPaddingException;
 //import javax.crypto.Cipher;
 //import javax.crypto.IllegalBlockSizeException;
@@ -14,26 +12,29 @@
 //import java.util.HashMap;
 //
 //import static com.CSE4057.ObjectInputOutputStreamExample.NewServer.*;
+//import static com.CSE4057.ObjectInputOutputStreamExample.NewServer.getClientInfo;
+//import static com.CSE4057.ObjectInputOutputStreamExample.NewServer.getClientPortInfo;
 //
-//public class NewServer
+//public class Server
 //{
 //    private static Key privateKeyOfServer = null;
 //    private static Key publicKeyOfServer = null;
 //    private static HashMap clientInfo = null;
-//
-//    NewServer() { }
+//    private static HashMap clientPortInfo = null;
 //
 //    public static void main(String[] args) throws Exception
 //    {
-//        // don't need to specify a hostname, it will be the current machine
+//    	// don't need to specify a hostname, it will be the current machine
+//        Server newServer = new Server();
+//
 //        generateKey();
 //
 //        clientInfo = new HashMap();
+//        clientPortInfo = new HashMap();
 //        ServerSocket ss = new ServerSocket(8018);
 //        System.out.println("ServerSocket awaiting connections...");
 //
-//        while (true)
-//        {
+//        while (true) {
 //            Socket s = null;
 //
 //            try {
@@ -44,7 +45,7 @@
 //                ObjectInputStream objectInputStream=new ObjectInputStream(s.getInputStream());
 //                ObjectOutputStream objectOutputStream = new ObjectOutputStream(s.getOutputStream());
 //                // create a new thread object
-//                Thread t = new ClientHandler(s,objectInputStream,objectOutputStream);
+//                Thread t = new ClientHandler1(s,objectInputStream,objectOutputStream,newServer);
 //
 //                t.start();
 //
@@ -57,29 +58,30 @@
 //
 //    public static Key getPrivateKeyOfServer() { return privateKeyOfServer; }
 //    public static Key getPublicKeyOfServer() { return publicKeyOfServer; }
+//
 //    public static void setPrivateKeyOfServer(Key k) { privateKeyOfServer = k; }
 //    public static void setPublicKeyOfServer(Key k) { publicKeyOfServer = k; }
 //
-//    public static void addToHash(String userNameOfClient, byte[] Certificate)
-//    {
-//        getClientInfo().put(userNameOfClient,Certificate);
-//    }
+//    public static void addToHash(String userNameOfClient, byte[] Certificate) { getClientInfo().put(userNameOfClient,Certificate); }
 //
 //    public static HashMap getClientInfo() { return clientInfo; }
+//
+//    public static HashMap getClientPortInfo() { return clientPortInfo; }
 //
 //    public static void generateKey() throws Exception
 //    {
 //        // here we generate server keys
 //        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-//        kpg.initialize(2048);
+//        kpg.initialize(4096);
 //        KeyPair kp = kpg.generateKeyPair();
+//        System.out.println("Public Key : " + Base64.getEncoder().encodeToString(kp.getPublic().getEncoded()));
 //        setPrivateKeyOfServer(kp.getPrivate());
 //        setPublicKeyOfServer(kp.getPublic());
 //    }
 //}
 //
 //// ClientHandler class
-//class ClientHandler extends Thread
+//class ClientHandler1 extends Thread
 //{
 //	// final ObjectInputStream ois;
 //	// final ObjectOutputStream oos;
@@ -91,14 +93,15 @@
 //    String userNameOfClient = null;
 //    byte[] certificate = null;
 //    Boolean sendedCertificate = false;
-//    NewServer newServer = null;
+//    Server newServer = null;
+//    int portNumber = 0;
 //
 //    // Constructor
-//    public ClientHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream)
-//    {
+//    public ClientHandler1(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, Server newServer){
 //        this.s = s;
 //        this.objectInputStream = objectInputStream;
 //        this.objectOutputStream = objectOutputStream;
+//        this.newServer = newServer;
 //    }
 //
 //    @Override
@@ -130,43 +133,51 @@
 //                        System.out.println("Cerfication can not verified... Now again certification process will work");
 //                    } else if(stringComing.contains("send all peers")){
 //                        //we will send all
-//                        System.out.println("liste ver la ok vermiÅŸ");
+//                        System.out.println("liste ver la ok vermiþ");
 //
-//                        objectOutputStream.writeObject(getClientInfo());
+//                        objectOutputStream.writeObject(newServer.getClientInfo());
+//                        objectOutputStream.writeObject(newServer.getClientPortInfo());
 //                        getClientInfo().forEach((key, value) -> {
 //                            System.out.println(key+" "+Base64.getEncoder().encodeToString((byte[]) value));
 //                        });
-//                        System.out.println(getClientInfo());
-//                    } else {
+//                    }
+//                    else {
 //                        if(userNameOfClient==null){
 //                            userNameOfClient = stringComing;
-//                            System.out.println("Loooooooo "+userNameOfClient);
+//                            System.out.println("User name of the current client :  "+userNameOfClient);
 //                        } else {
-//                            objectOutputStream.writeObject(new String("wrong command"));
-//                        }
 //
+//                            objectOutputStream.writeObject(new String("wrong command is "+stringComing));
+//                        }
 //
 //                    }
 //                    System.out.println(stringComing);
 //
+//                } else if(o instanceof Integer){
+//                    portNumber = (int) o ;
+//                    System.out.println(portNumber);
+//                    savePort(userNameOfClient,portNumber);
+//                    sendedCertificate = false;
 //                }
-//                if(!sendedCertificate && userNameOfClient != null && publicKeyOfClient != null){
+//                if(!sendedCertificate && userNameOfClient != null && publicKeyOfClient != null && portNumber !=0){
 //                    System.out.println("sending certificate");
 //                    certificate = certificate(publicKeyOfClient,getPublicKeyOfServer());
+//                    System.out.println("Sertifika uzunluðu "+certificate.length);
 //                    objectOutputStream.writeObject(certificate);
 //                }
 //
 //            }catch (Exception e){
-//                System.out.println("hata");
+//            	// getClientInfo().remove(userNameOfClient);
+//            	// getClientPortInfo().remove(userNameOfClient);
 //                return;
 //            }
 //        }
 //
 //
 //    }
+//    private void savePort(String userNameOfClient, int port) { getClientPortInfo().put(userNameOfClient,port ); }
 //
-//    private void saveCertificate(String userNameOfClient) throws Exception
-//    {
+//    private void saveCertificate(String userNameOfClient) throws Exception {
 //    	// bir yere save etmeli
 //    	// System.out.println(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()));
 //        Crypt crypt = new Crypt();
@@ -174,14 +185,11 @@
 //        newServer.addToHash(userNameOfClient,cipherText );
 //    }
 //
-//    public byte[] certificate(Key publicKeyOfClient, Key privateKeyOfServer) throws Exception
-//    {
+//    public byte[] certificate(Key publicKeyOfClient, Key privateKeyOfServer) throws Exception {
 //        // here we sign public key of client with server private key
-//        Signature certificate=Signature.getInstance("SHA256withRSA");
-//        certificate.initSign((PrivateKey) getPrivateKeyOfServer());
-//        certificate.update(Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()).getBytes());
-//        byte[] digitalSign = certificate.sign();
-//        return digitalSign; // return digital signature
+//        Crypt crypt = new Crypt();
+//        byte[] cipherText = crypt.encrypt(publicKeyOfClient,getPrivateKeyOfServer());
+//        return cipherText; // return digital signature
 //    }
 //
 //}

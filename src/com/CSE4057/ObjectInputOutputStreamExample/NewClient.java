@@ -1,6 +1,8 @@
 package com.CSE4057.ObjectInputOutputStreamExample;
 
 
+
+
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
@@ -57,9 +59,11 @@ public class NewClient {
         boolean scannerOn=false;
         int portNumber = 0;
         this.wait = true;
+        // Key Generation part
         generateMac();
         iv = new IvParameterSpec(mastersecret);
         EncryprtionKey = new SecretKeySpec(mastersecret, "AES");
+        currentCipherText = initialciphertext;
     }
     public void setPublicKey(Key k){
         pub=k;
@@ -109,11 +113,6 @@ public class NewClient {
             if (o instanceof byte[]){
                 System.out.println("Certificate come");
                 client.serverCertificate = (byte[]) o;
-//                System.out.println("Sertifika uzunluğu "+client.serverCertificate.length);
-//                Crypt crypt = new Crypt(); // to test
-//                Key a = crypt.decrypt(client.serverCertificate,client.serverPublicKey);
-//                System.out.println("Public Key : "+Base64.getEncoder().encodeToString(a.getEncoded()));
-//                System.out.println("Public key of server :"+Base64.getEncoder().encodeToString(client.serverPublicKey.getEncoded()));
                 client.verifyCheck = true;
             } else if (o instanceof Key){
                 System.out.println("Key come");
@@ -127,13 +126,6 @@ public class NewClient {
                 Map.Entry entry = (Map.Entry) anyhash.entrySet().iterator().next();
                 if(entry.getValue() instanceof byte[]) {
                     allPeers = anyhash;
-//                    allPeers.forEach((key, value) -> {
-//                        try {
-//                            System.out.println("Peer : "+key + " " + crypt.decrypt((byte[]) value, getServerPublicKey()));
-//                        } catch (Exception e) {
-//                            e.printStackTrace();
-//                        }
-//                    });
                     client.wait = true;
                 } else {
                     portPeers = anyhash;
@@ -251,12 +243,17 @@ class PeerUserOneHandler extends Thread
     NewClient client = null;
     boolean chatMoodOn = false;
     Scanner scn = new Scanner(System.in);
+    Gui gui = new Gui("");
     // Constructor
     public PeerUserOneHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, NewClient client) {
         this.s = s;
         this.objectInputStream = objectInputStream;
         this.objectOutputStream = objectOutputStream;
         this.client = client;
+        gui.setName(client.getUserName());
+        gui.setObjectOutputStream(objectOutputStream);
+        gui.setObjectInputStream(objectInputStream);
+        gui.setUserName(client.getUserName());
     }
 
     @Override
@@ -270,55 +267,59 @@ class PeerUserOneHandler extends Thread
             e.printStackTrace();
         }
         Boolean cryptedNonce = false;
-        while (true){
+        while (true) {
             try { // to construct handshake
                 o = (Object) objectInputStream.readObject();
-                if (o instanceof String){
-                    System.out.print("peer : -");
-                    String stringComing = (String) o;
-                    if(stringComing.equals("ACK")){
-                        System.out.println("Connection Ok");
-                        System.out.println("Chat mode on in secure\nTo send image, - **file FILE_PATH");
-                        chatMoodOn = true;
+                if (!chatMoodOn){
+                    if (o instanceof String) {
+                        String stringComing = (String) o;
+                        if (stringComing.equals("ACK")) {
+                            System.out.println("Connection Ok");
+                            System.out.println("Chat mode on in secure\nTo send image, - **file FILE_PATH");
+                            chatMoodOn = true;
+                        }
+//                        System.out.println(stringComing);
+                        //                    gui.addToGui(stringComing);
+
+                    } else if (o instanceof Integer) {
+                        nonce = (int) o;
+                        System.out.println(nonce);
+
+                    } else if (o instanceof byte[]) {
+                        System.out.println("Certificate is brought");
+                        certificateOfnewPeer = (byte[]) o;
                     }
-                    System.out.println(stringComing);
-
-                } else if(o instanceof Integer){
-                    nonce = (int) o ;
-                    System.out.println(nonce);
-
-                } else if(o instanceof byte[]){
-                    System.out.println("Certificate is brought");
-                    certificateOfnewPeer = (byte[]) o;
+                    if (certificateOfnewPeer != null && nonce != 0 && !cryptedNonce) {
+                        Crypt crypt = new Crypt();
+                        String toEncrypt = "" + nonce;
+                        //                    System.out.println("&&&& "+Base64.getEncoder().encodeToString(client.getPrivateKey().getEncoded()));
+                        byte[] cipherText = crypt.encryptText(toEncrypt, client.getPrivateKey());
+                        System.out.println("text " + Base64.getEncoder().encodeToString(cipherText));
+                        System.out.println(crypt.decryptString(cipherText, client.getPublicKey()));
+                        objectOutputStream.writeObject(cipherText);
+                        cryptedNonce = true;
+                    }
                 }
-                if(certificateOfnewPeer != null && nonce != 0 && !cryptedNonce){
-                    Crypt crypt = new Crypt();
-                    String toEncrypt = ""+nonce;
-//                    System.out.println("&&&& "+Base64.getEncoder().encodeToString(client.getPrivateKey().getEncoded()));
-                    byte[] cipherText = crypt.encryptText(toEncrypt,client.getPrivateKey());
-                    System.out.println("text " +Base64.getEncoder().encodeToString(cipherText));
-                    System.out.println(crypt.decryptString(cipherText,client.getPublicKey()));
-                    objectOutputStream.writeObject(cipherText);
-                    cryptedNonce = true;
-                }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("Koptu");
                 return;
             }
             try{
                 if(chatMoodOn){
-                    System.out.print("me : - ");
-                    String chat =  scn.nextLine();
-                    if(chat.contains("**file")){
-                        String path = chat.replace("**file","");
+                    if(o instanceof String){
+                        String stringComing = (String) o;
+                        System.out.println(stringComing);
+
                     }
-                    else
-                        objectOutputStream.writeObject(chat);
+                    gui.setL1("Message mode on");
+
+
                 }
 
 
             } catch (Exception e) {
+
                 System.out.println("Chat error");
             }
         }

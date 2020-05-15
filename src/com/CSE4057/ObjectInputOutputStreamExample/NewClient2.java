@@ -1,6 +1,7 @@
 package com.CSE4057.ObjectInputOutputStreamExample;
 
 
+
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
@@ -188,6 +189,7 @@ class PeerUserTwoHandler extends Thread
     Key publicKeyOfPeers = null;
     int nonce=9;
     Scanner scn = new Scanner(System.in);
+    Gui gui = new Gui("");
 
     // Constructor
     public PeerUserTwoHandler(Socket s, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, NewClient client) {
@@ -195,6 +197,10 @@ class PeerUserTwoHandler extends Thread
         this.objectInputStream = objectInputStream;
         this.objectOutputStream = objectOutputStream;
         this.client = client;
+        gui.setName(client.getUserName());
+        gui.setObjectOutputStream(objectOutputStream);
+        gui.setObjectInputStream(objectInputStream);
+        gui.setUserName(client.getUserName());
     }
 
     @Override
@@ -276,17 +282,12 @@ class PeerUserTwoHandler extends Thread
                 if(connecting){
                     if(o instanceof String){
                         String stringComing = (String) o;
-                        System.out.println(userNameOfClient + " : - " + stringComing);
+                        System.out.println(stringComing);
+                        gui.setL1("Message mode on");
                     }
 
                     if(chatModeOn){
-                        System.out.print("me : - ");
-                        String chat =  scn.nextLine();
-                        if(chat.contains("**file")){
-                            String path = chat.replace("**file","");
-                        }
-                        else
-                            objectOutputStream.writeObject(chat);
+                        gui.setL1("Message mode on");
                     }
 
                 }
@@ -295,33 +296,7 @@ class PeerUserTwoHandler extends Thread
             }
 
         }
-//        try {
-//            objectOutputStream.writeObject(getPublicKeyOfServer());
-//        } catch (IOException e) {
-//            System.out.println("Sending public key of server");
-//        }
-//        while (true){
-//            try {
-//                o = (Object) objectInputStream.readObject();
-//                if (o instanceof Key) {
-//                    System.out.println("Key is brought");
-//                    publicKeyOfClient = (Key) o;
-//                    System.out.println(publicKeyOfClient);
-//                } else if (o instanceof String){
-//                    System.out.println("String is brought");
-//                    String stringComing = (String) o;
-//                    System.out.println(stringComing);
-//
-//                } else if(o instanceof Integer){
-//                    portNumber = (int) o ;
-//                    System.out.println(portNumber);
-//
-//                }
-//            }catch (Exception e){
-//
-//                return;
-//            }
-//        }
+
 
 
     }
