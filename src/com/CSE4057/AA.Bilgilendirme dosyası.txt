@@ -1,6 +1,32 @@
 Selamun aleyküm mübarek buraya bilgilendirmeleri yazıcam inş.
 
+How To Run
+1.Run NewServer
+2.Run NewClient2, bir isim ver bağlantı kurulduktan sonra terminaye server connection yaz konsola wait connection dicek
+3.Run NewClient1, yine bir isim ver, sonra send all peers yaz konsola enterla, NewClient2'ye verdiğin ismi ve port numarasını
+göreceksin, connect NewClient2'nin adını yaz
+4.Client - Client bağlantı kurulduysa 2 pencere açılacak send'e basınca mesajlar terminale düşecektir
 
+
+
+15.05.2020 akşam
+    harun:
+        - Selamun aleyküm, Yasin'den aldığım kısımla geri kalan kısmı bitirdim,
+        - 3.kısım sadece key üretmeydi onu NewClient clasında constructer içinde yaptım
+        - Yasin'den Message Encryption kısmını aldım direkt AES ile IV ile şifreleme( Crypt . CbcBlockCipherEncrypt metodu)
+        - Integrity Check  olayını direkt olarak MAC objesinin length ile kontrol ediliyor, (array concatenate)
+         Resistance to Replay Attacks kısmı ise yine array concatenate metoduyla yapıyor
+                String count = (macmessage.length+1000000+nonce)+"";
+                byte[] lengtMessage = count.getBytes("UTF-8");
+                byte[] sendmessage = new byte[message.length + macmessage.length+lengtMessage.length];
+                System.arraycopy(lengtMessage, 0, sendmessage, 0, lengtMessage.length);
+                System.arraycopy(message, 0, sendmessage, lengtMessage.length, message.length);
+                System.arraycopy(macmessage, 0, sendmessage, message.length+lengtMessage.length, macmessage.length);
+
+         bu şekilde birbirine ekleyip gönderiyor, karşı tarafta bu formata uygun açıyor.( Crypt . splityTheArray metodu)
+
+        - File göndermeye bakabilirim, bakamayadabilirim de
+        - Şu haliyle bitti...
 
 14.05.2020 gündüz
     harun:

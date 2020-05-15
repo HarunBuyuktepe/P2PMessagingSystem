@@ -1,4 +1,4 @@
-package com.CSE4057.ObjectInputOutputStreamExample;
+package com.CSE4057;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -15,8 +15,11 @@ public class Gui implements ActionListener{
     ObjectInputStream objectInputStream;
     JPanel panel;
     String userName="";
+    NewClient newClient;
+    Crypt crypt;
+    int nonce;
     public Gui(String s){
-
+        crypt = new Crypt();
         f.setTitle(s);
 
         tf1=new JTextField();
@@ -38,7 +41,7 @@ public class Gui implements ActionListener{
 
 
         f.add(tf1);f.add(l1);f.add(b1);f.add(l2);
-        f.setSize(300,600);
+        f.setSize(300,300);
         f.setLayout(null);
         f.setVisible(true);
     }
@@ -46,9 +49,18 @@ public class Gui implements ActionListener{
         String s1=tf1.getText();
         if(e.getSource()==b1){
             try {
-                System.out.println(userName+" : - "+s1);
-//                addPanel(panel,"me : - "+s1);
-                objectOutputStream.writeObject(userName+" : - "+s1);
+                String message = userName+" : - "+s1;
+
+                System.out.println(message);
+                byte[] send,mac_byte;
+                mac_byte = crypt.MacAlgorithm(newClient.encryprtionKey,message.getBytes("UTF-8"));
+                send = crypt.arrayConcatanate(message.getBytes("UTF-8"),mac_byte,nonce);
+                send = crypt.cbcBlockCipherEncrypt(send,newClient.currentCipherText,newClient.encryprtionKey,newClient.iv);
+                objectOutputStream.writeObject(send); // Encrypted Message
+                objectOutputStream.writeObject(newClient.currentCipherText); //
+                newClient.currentCipherText = send;
+                tf1.setText("");
+//                objectOutputStream.writeObject(userName+" : - "+s1);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -82,4 +94,7 @@ public class Gui implements ActionListener{
         addPanel(panel,stringComing);
     }
     public void setUserName(String s){userName=s;}
+
+    public void setNewClient(NewClient client) { newClient = client; }
+    public void setNonce(int n){nonce = n;}
 }
