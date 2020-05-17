@@ -35,12 +35,6 @@ public class Gui implements ActionListener
         b1.setBounds(95, 150, 80, 50);		// Position of Button
         b1.addActionListener(this);
 
-        // panel = new JPanel();
-        // panel.setLayout(new GridLayout(10, 1, 10, 10));
-        // JScrollPane jScrollPane = new JScrollPane(panel);
-        // jScrollPane.setBounds(40,210,200,300);
-        // f.add(jScrollPane);
-
         f.add(tf1); f.add(l1); f.add(b1); f.add(l2);		// Append Labels & Button To The Frame
         f.setSize(300, 300);		// Size of Frame
         f.setLayout(null);
@@ -53,14 +47,19 @@ public class Gui implements ActionListener
         if(e.getSource() == b1)
         {
             try {
+                // message formatted
                 String message = userName + " : - " + s1;
+                // To give terminal message
                 System.out.println(message);
                 
                 byte[] send, mac_byte;
-                mac_byte = crypt.MacAlgorithm(newClient.encryprtionKey, message.getBytes("UTF-8"));
-                send = crypt.arrayConcatanate(message.getBytes("UTF-8"), mac_byte, nonce);
+                // Our message encrypted with creation of mac algoritm and encryption with AES key and Init Vector
+                mac_byte = crypt.macAlgorithm(newClient.encryprtionKey, message.getBytes("UTF-8"));
+                send = crypt.arrayConcatenate(message.getBytes("UTF-8"), mac_byte, nonce);
+                // Message encrypted using CBC mode
                 send = crypt.cbcBlockCipherEncrypt(send, newClient.currentCipherText, newClient.encryprtionKey, newClient.iv);
-                objectOutputStream.writeObject(send); 			// Encrypted Message
+                // And we send encrypted and secured message
+                objectOutputStream.writeObject(send); 		// Encrypted Message
                 objectOutputStream.writeObject(newClient.currentCipherText);
                 newClient.currentCipherText = send;
                 tf1.setText("");

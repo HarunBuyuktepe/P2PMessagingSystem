@@ -5,7 +5,7 @@ import java.net.*;
 import java.util.*;
 import java.security.*;
 
-import static com.CSE4057.NewClient.verifySignature;
+import static com.CSE4057.NewClient.verifySigniture;
 
 public class NewClient2
 {
@@ -64,13 +64,6 @@ public class NewClient2
                 Map.Entry entry = (Map.Entry) anyhash.entrySet().iterator().next();
                 if (entry.getValue() instanceof byte[]) {
                     allPeers = anyhash;
-//                    allPeers.forEach((key, value) -> {
-//                        try {
-//                            System.out.println("Peer : "+key + " " + crypt.decrypt((byte[]) value, getServerPublicKey()));
-//                        } catch (Exception e) {
-//                            e.printStackTrace();
-//                        }
-//                    });
                     client.wait = true;
                 } else {
                     portPeers = anyhash;
@@ -90,7 +83,7 @@ public class NewClient2
             }
             
             if (client.verifyCheck && client.serverPublicKey != null && client.serverCertificate != null) {
-                String verify = verifySignature(client.serverCertificate, client.serverPublicKey);
+                String verify = client.verifySigniture(client.serverCertificate, client.serverPublicKey);
                 serverObjectOutputStream.writeObject(verify);
                 client.verifyCheck = false;
                 client.scannerOn = true;
@@ -101,7 +94,7 @@ public class NewClient2
                 System.out.println("Enter your choice\n1.To get all peer certificate and username, - send all peers" +
                         "\n2.To connect user, - connect USERNAME\n3.To terminate server connection, - terminate server connection");
                 String command = scn.nextLine();
-                if (command.contains("Terminate Server Connection")) {
+                if (command.contains("terminate server connection")) {
                     socket.close();
                     break;
                 }  
