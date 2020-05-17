@@ -1,17 +1,18 @@
 package com.CSE4057;
 
+import java.io.*;
 import javax.swing.*;
 import java.awt.event.*;
-import java.io.*;
 
 public class Gui implements ActionListener
 {
+	/* GUI & Other Class Objects */
     JTextField tf1;
     JLabel l1, l2;
     JButton b1;
     JPanel panel;
     JFrame f = new JFrame();
-    ObjectOutputStream objectOutputStream ;
+    ObjectOutputStream objectOutputStream;
     ObjectInputStream objectInputStream;
     String userName = "";
     NewClient newClient;
@@ -21,17 +22,17 @@ public class Gui implements ActionListener
     public Gui(String s)
     {
         crypt = new Crypt();
-        f.setTitle(s);
+        f.setTitle(s);				// Frame Title
 
         tf1 = new JTextField();
-        tf1.setBounds(60, 50, 150, 20);
+        tf1.setBounds(60, 50, 150, 20);		// Position of Text Field
 
-        l1 = new JLabel("First Label.");
-        l1.setBounds(60, 100, 100, 30);
+        l1 = new JLabel("First Label");
+        l1.setBounds(60, 100, 100, 30);		// Position of Info Message
         l2 = new JLabel("Message");
-        l2.setBounds(60, 20, 100, 30);
+        l2.setBounds(60, 20, 100, 30);		// Position of Text Field Title
         b1 = new JButton("Send");
-        b1.setBounds(95, 150, 80, 50);
+        b1.setBounds(95, 150, 80, 50);		// Position of Button
         b1.addActionListener(this);
 
         // panel = new JPanel();
@@ -40,13 +41,13 @@ public class Gui implements ActionListener
         // jScrollPane.setBounds(40,210,200,300);
         // f.add(jScrollPane);
 
-        f.add(tf1); f.add(l1); f.add(b1); f.add(l2);
-        f.setSize(300, 300);
+        f.add(tf1); f.add(l1); f.add(b1); f.add(l2);		// Append Labels & Button To The Frame
+        f.setSize(300, 300);		// Size of Frame
         f.setLayout(null);
         f.setVisible(true);
     }
     
-    public void actionPerformed(ActionEvent e)
+    public void actionPerformed(ActionEvent e)		// Button Click Event
     {
         String s1 = tf1.getText();
         if(e.getSource() == b1)
@@ -68,7 +69,7 @@ public class Gui implements ActionListener
                 ex.printStackTrace();
             }
             
-            l1.setText("Sent it");
+            l1.setText("Sent it");			// Set Info Message as 'Sent It'
         }
     }
     
