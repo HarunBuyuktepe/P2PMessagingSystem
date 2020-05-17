@@ -12,7 +12,7 @@ public class NewClient2
     public static void main(String[] args) throws Exception
     {
         NewClient client = new NewClient();
-        client.portNumber = 8034;
+        client.portNumber = 8034;		// Port Number of Client2
         ServerSocket ss ;
         Scanner scn = new Scanner(System.in);
         String name = null;
@@ -24,14 +24,14 @@ public class NewClient2
         }
         
         System.out.println("Client ready to connect server ...");
-        Socket socket = new Socket("localhost", 8018);
+        Socket socket = new Socket("localhost", 8018);				// Socket Object with its Port Number (8018)
         client.socketList.add(socket);
         
         // create an object output stream from the output stream so we can send an object through it
         ObjectOutputStream serverObjectOutputStream = new ObjectOutputStream(socket.getOutputStream());
         ObjectInputStream serverObjectInputStream = new ObjectInputStream(socket.getInputStream());
 
-        System.out.println("Sending public key and username to the ServerSocket");
+        System.out.println("Sending Public Key & Username to the ServerSocket");
         serverObjectOutputStream.writeObject(client.getPublicKey());
         serverObjectOutputStream.writeObject(client.getUserName());
         serverObjectOutputStream.writeObject(client.getPortNumber());
@@ -184,8 +184,7 @@ class PeerUserTwoHandler extends Thread
     ObjectOutputStream objectOutputStream = null;
     String userNameOfClient = null;
     byte[] certificateOfnewPeer = null;
-    int portNumber = 0;
-    NewClient client=null;
+    NewClient client = null;
     Key publicKeyOfPeer = null;
     Key publicKeyOfPeers = null;
     int nonce;
@@ -199,7 +198,7 @@ class PeerUserTwoHandler extends Thread
         this.objectInputStream = objectInputStream;
         this.objectOutputStream = objectOutputStream;
         this.client = client;
-        gui.setName(client.getUserName());
+        gui.setName(client.getUserName());				// Set GUI Title as Client Name
         gui.setObjectOutputStream(objectOutputStream);
         gui.setObjectInputStream(objectInputStream);
         gui.setUserName(client.getUserName());
@@ -210,7 +209,7 @@ class PeerUserTwoHandler extends Thread
     @Override
     public void run()
     {
-        byte[] takenMessage = new byte[0],cipher = new byte[0];
+        byte[] takenMessage = new byte[0], cipher = new byte[0];
         Object o = null;
         byte[] encryptedMessage;
         boolean encryptedNonceWaiting = false;
@@ -226,8 +225,9 @@ class PeerUserTwoHandler extends Thread
                 o = (Object) objectInputStream.readObject();
                 if(!connecting)
                 {
-                    if (o instanceof byte[]) {
-                        System.out.println("Certificate is brought");
+                    if (o instanceof byte[])
+                    {
+                        System.out.println("Certificate is Brought");
                         if (certificateOfnewPeer == null)
                             certificateOfnewPeer = (byte[]) o;
                         else if (publicKeyOfPeer == null) {
@@ -251,15 +251,16 @@ class PeerUserTwoHandler extends Thread
                             String commingMessage = crypt.decryptString(encryptedMessage, publicKeyOfPeer);
                             System.out.println("Coming message is :" + commingMessage);
                         }
-                    } else if (o instanceof Key) {
+                    } 
+                    else if (o instanceof Key) {
                         publicKeyOfPeers = (Key) o;
-                    } else if (o instanceof String) {
+                    } 
+                    else if (o instanceof String) {
                     	// System.out.println("String is brought");
                         String stringComing = (String) o;
                         System.out.println(stringComing);
-                        if (stringComing.contains("username ")) {
+                        if (stringComing.contains("username "))
                             userNameOfClient = stringComing.replace("username ", "");
-                        }
 
                     }
                 }
@@ -280,15 +281,15 @@ class PeerUserTwoHandler extends Thread
                 e.printStackTrace();
             }
             try{ // bağlantı kurulduysa
-                if(connecting){
-                    if(o instanceof String){
+                if (connecting) {
+                    if (o instanceof String) {
                         String stringComing = (String) o;
                         System.out.println(stringComing);
                         gui.setL1("Message mode on");
                     }
-                    else if(o instanceof  byte[]){
+                    else if (o instanceof  byte[]) {
                         boolean ready = false;
-                        if(!cip){
+                        if (!cip) {
                             takenMessage = (byte[]) o;
                             cip = true;
                         }
@@ -297,10 +298,10 @@ class PeerUserTwoHandler extends Thread
                             cip = false;
                             ready = true;
                         }
-                        if(!cip && ready){
+                        if (!cip && ready) {
                             crypt = new Crypt();
-                            byte[] chat = crypt.cbcBlockCipherDecrypt(takenMessage,cipher,client.encryprtionKey,client.iv);
-                            chat = crypt.splityTheArray(chat,client.encryprtionKey,nonce);
+                            byte[] chat = crypt.cbcBlockCipherDecrypt(takenMessage, cipher, client.encryprtionKey, client.iv);
+                            chat = crypt.splityTheArray(chat, client.encryprtionKey, nonce);
                             System.out.println(new String(chat));
                         }
                     }
