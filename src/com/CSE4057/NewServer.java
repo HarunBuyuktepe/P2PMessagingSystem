@@ -21,11 +21,11 @@ public class NewServer
         // don't need to specify a hostname, it will be the current machine
         NewServer newServer = new NewServer();
 
-        generateKey();
+        generateKey();		// Generate Server Keys
 
         clientInfo = new HashMap();
         clientPortInfo = new HashMap();
-        ServerSocket ss = new ServerSocket(8018);
+        ServerSocket ss = new ServerSocket(8018);			// ServerSocket with Port Number 8018
         System.out.println("ServerSocket awaiting connections...");
 
         while (true)
