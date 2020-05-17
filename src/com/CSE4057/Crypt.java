@@ -1,17 +1,15 @@
 package com.CSE4057;
 
 import javax.crypto.*;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-import java.io.Serializable;
+import javax.crypto.spec.*;
+//import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.security.*;
-import java.security.interfaces.RSAKey;
-import java.security.spec.EncodedKeySpec;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Arrays;
-import java.util.Base64;
+//import java.security.interfaces.RSAKey;
+//import java.security.spec.EncodedKeySpec;
+//import java.security.spec.InvalidKeySpecException;
+//import java.security.spec.X509EncodedKeySpec;
+import java.util.*;
 
 // must implement Serializable in order to be sent
 public class Crypt
@@ -21,21 +19,21 @@ public class Crypt
     public static void main(String[] args) throws Exception
     {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");			// KeyPairGenerator with RSA Mode
-        kpg.initialize(2048);					// Key Size(2048 Bits)
+        kpg.initialize(2048);
         KeyPair kp = kpg.generateKeyPair();		// KeyPair for Public-Private Keys
         Key publicKeyOfClient = kp.getPublic();		// Public Key of 'Client'
-        Key privateKeyOfClient = kp.getPrivate();	// Private Key of 'Client'
+        //Key privateKeyOfClient = kp.getPrivate();	// Private Key of 'Client'
 
         KeyPairGenerator kpg1 = KeyPairGenerator.getInstance("RSA");		// KeyPairGenerator with RSA Mode
-        kpg1.initialize(4096);					// Key Size(4096 Bits)
+        kpg1.initialize(4096);
         kp = kpg1.generateKeyPair();			// KeyPair for Public-Private Keys
         Key publicKeyOfServer = kp.getPublic();		// Public Key of 'Server'
         Key privateKeyOfServer = kp.getPrivate();	// Private Key of 'Server'
 
-        KeyPairGenerator kpg2 = KeyPairGenerator.getInstance("RSA");		// KeyPairGenerator with RSA Mode
-        kpg2.initialize(2048);					// Key Size(2048 Bits)
-        Key publicKeyOfSecondClient = kp.getPublic();
-        Key privateKeyOfSecondClient = kp.getPrivate();
+        //KeyPairGenerator kpg2 = KeyPairGenerator.getInstance("RSA");		// KeyPairGenerator with RSA Mode
+        //kpg2.initialize(2048);					// Key Size(2048 Bits)
+        //Key publicKeyOfSecondClient = kp.getPublic();
+        //Key privateKeyOfSecondClient = kp.getPrivate();
 
         System.out.println("---" + Base64.getEncoder().encodeToString(publicKeyOfClient.getEncoded()));		  // Encrypt Public Key of 'Client' 
         byte[] cipherText = encrypt(publicKeyOfClient, privateKeyOfServer);
@@ -102,7 +100,7 @@ public class Crypt
         Mac mac = Mac.getInstance("HmacMD5");		// MAC mode
         mac.init(encryptionkey);		// Initialize with Key Size
 
-        byte[] digest = mac.doFinal(message);		//  Encrypt Message with 'MAC'
+        byte[] digest = mac.doFinal(message);		//  Finish the MAC Operation
         return digest;
     }
 
