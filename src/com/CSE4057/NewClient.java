@@ -66,20 +66,20 @@ public class NewClient
     public static void main(String[] args) throws Exception
     {
         NewClient client = new NewClient();
-        System.out.println("Public Key : " + Base64.getEncoder().encodeToString(client.getPublicKey().getEncoded()));
-        client.portNumber = 8035;
-        ServerSocket ss = new ServerSocket(client.portNumber);
+        System.out.println("Public Key : " + Base64.getEncoder().encodeToString(client.getPublicKey().getEncoded()));		// Public Key of Client1
+        client.portNumber = 8035;			// Port Number of Client1
+        ServerSocket ss = new ServerSocket(client.portNumber);			// ServerSocket with Port Number of Client1
         Scanner scn = new Scanner(System.in);
         String name = null;
 
         System.out.print("Enter Username : ");
-        while(name == null || name == "") {
+        while (name == null || name == "") {
             name = scn.nextLine();
             client.setUserName(name);
         }
         
         System.out.println("Client ready to connect server ...");
-        Socket socket = new Socket("localhost", 8018);
+        Socket socket = new Socket("localhost", 8018);			// Socket Object with its Port Number (8018)
         client.socketList.add(socket);
         
         // create an object output stream from the output stream so we can send an object through it
@@ -248,7 +248,7 @@ class PeerUserOneHandler extends Thread
         this.objectInputStream = objectInputStream;
         this.objectOutputStream = objectOutputStream;
         this.client = client;
-        gui.setName(client.getUserName());
+        gui.setName(client.getUserName());			// Set GUI Title as Client Name
         gui.setObjectOutputStream(objectOutputStream);
         gui.setObjectInputStream(objectInputStream);
         gui.setUserName(client.getUserName());
