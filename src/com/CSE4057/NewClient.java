@@ -79,7 +79,7 @@ public class NewClient {
         Scanner scn = new Scanner(System.in);
         String name = null;
 
-        System.out.println("Enter username : ");
+        System.out.print("Enter username : ");
         while(name == null  || name =="" ){
             name = scn.nextLine();
             client.setUserName(name);
@@ -224,10 +224,11 @@ public class NewClient {
         String notVerifyed ="not verified certificate";
         Crypt crypt = new Crypt();
         Key publi = crypt.decrypt(serverSigniture,serverPublicKey);
-        System.out.println("---"+Base64.getEncoder().encodeToString(publi.getEncoded()));
+//        System.out.println("---"+Base64.getEncoder().encodeToString(publi.getEncoded()));
 
-        if(Base64.getEncoder().encodeToString(publi.getEncoded()).equals(Base64.getEncoder().encodeToString(getPublicKey().getEncoded())))
-            return verify;
+        if(Base64.getEncoder().encodeToString(publi.getEncoded()).equals(Base64.getEncoder().encodeToString(getPublicKey().getEncoded()))){
+            System.out.println("Verified server certificate");
+            return verify;}
         else
             return notVerifyed;
 
@@ -295,7 +296,7 @@ class PeerUserOneHandler extends Thread
                         String stringComing = (String) o;
                         if (stringComing.equals("ACK")) {
                             System.out.println("Connection Ok");
-                            System.out.println("Chat mode on in secure\nTo send image, - **file FILE_PATH");
+                            System.out.println("Chat mode on in secure");
                             chatMoodOn = true;
                         }
 //                        System.out.println(stringComing);
@@ -315,8 +316,8 @@ class PeerUserOneHandler extends Thread
                         String toEncrypt = "" + nonce;
                         //                    System.out.println("&&&& "+Base64.getEncoder().encodeToString(client.getPrivateKey().getEncoded()));
                         byte[] cipherText = crypt.encryptText(toEncrypt, client.getPrivateKey());
-                        System.out.println("text " + Base64.getEncoder().encodeToString(cipherText));
-                        System.out.println(crypt.decryptString(cipherText, client.getPublicKey()));
+//                        System.out.println("text " + Base64.getEncoder().encodeToString(cipherText));
+                        System.out.println("Decrypted nonce"+crypt.decryptString(cipherText, client.getPublicKey()));
                         objectOutputStream.writeObject(cipherText);
                         cryptedNonce = true;
                     }

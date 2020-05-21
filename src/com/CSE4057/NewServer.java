@@ -68,7 +68,7 @@ public class NewServer
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");			// KeyPairGenerator with RSA Mode
         kpg.initialize(4096);
         KeyPair kp = kpg.generateKeyPair();			// KeyPair for Public-Private Keys
-        System.out.println("Public Key : " + Base64.getEncoder().encodeToString(kp.getPublic().getEncoded()));
+//        System.out.println("Public Key : " + Base64.getEncoder().encodeToString(kp.getPublic().getEncoded()));
         setPrivateKeyOfServer(kp.getPrivate());		// Private Key of Server
         setPublicKeyOfServer(kp.getPublic());		// Public Key of Server
     }
@@ -103,7 +103,7 @@ class ClientHandler extends Thread
     @Override
     public void run()
     {
-        System.out.println(objectInputStream);
+//        System.out.println(objectInputStream);
         Object o = null;
         try {
             objectOutputStream.writeObject(getPublicKeyOfServer());
@@ -135,7 +135,7 @@ class ClientHandler extends Thread
                         System.out.println("Cerfication can not verified... Now again certification process will work");
                     } else if(stringComing.contains("send all peers")){
                         //we will send all
-                        System.out.println("liste ver la ok vermiş");
+//                        System.out.println("liste ver la ok vermiş");
 
                         objectOutputStream.writeObject(newServer.getClientInfo());
                         objectOutputStream.writeObject(newServer.getClientPortInfo());

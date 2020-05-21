@@ -154,7 +154,7 @@ public class NewClient2
                     t.start();
                     System.out.println("Accepted");
                 } catch (Exception e) {
-                    System.out.println("Olmii");
+//                    System.out.println("Olmii");
                 }
             }
 
@@ -220,7 +220,7 @@ class PeerUserTwoHandler extends Thread
                 {
                     if (o instanceof byte[])
                     {
-                        System.out.println("Certificate is Brought");
+//                        System.out.println("Certificate is Brought");
                         if (certificateOfnewPeer == null)
                             certificateOfnewPeer = (byte[]) o;
                         else if (publicKeyOfPeer == null) {
@@ -236,7 +236,7 @@ class PeerUserTwoHandler extends Thread
                                 objectOutputStream.writeObject(new String("ACK"));
                                 connecting = true;
                                 o = null;
-                                System.out.println("Chat mode on in secure\nTo send image, - **file FILE_PATH");
+                                System.out.println("Chat mode on in secure");
                                 chatModeOn = true;
                             }
                         } else {
