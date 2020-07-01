@@ -258,7 +258,7 @@ class PeerUserOneHandler extends Thread
     Key publicKeyOfClient = null;
     String userNameOfClient = null;
     byte[] certificateOfnewPeer = null;
-    int nonce = 0;
+    int nonce = (int)Math.random()*10;
     NewClient client = null;
     boolean chatMoodOn = false;
     Scanner scn = new Scanner(System.in);

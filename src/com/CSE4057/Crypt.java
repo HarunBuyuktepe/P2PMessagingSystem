@@ -131,7 +131,7 @@ public class Crypt
     public byte[] arrayConcatenate(byte[] message, byte[] macmessage, int nonce) throws UnsupportedEncodingException
     {
         // We concatenate Mac byte info, our message and nonce and provide Resistance to Replay Attacks
-        String count = (macmessage.length + 1000000 + nonce) + "";
+        String count = (macmessage.length + 1000000 + nonce) + ""; // 
         byte[] lengtMessage = count.getBytes("UTF-8");
         byte[] sendmessage = new byte[message.length + macmessage.length + lengtMessage.length];
         System.arraycopy(lengtMessage, 0, sendmessage, 0, lengtMessage.length);
